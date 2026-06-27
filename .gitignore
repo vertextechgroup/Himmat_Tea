@@ -1,0 +1,11 @@
+/node_modules
+/dist
+/.env
+/coverage
+/.vscode
+node_modules/
+dist/
+.env
+.coverage
+.vscode
+.next/

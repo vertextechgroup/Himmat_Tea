@@ -1,0 +1,284 @@
+import { useState } from "react";
+import { Plus, Search, Mail, Edit, Trash2, User, Shield, Lock } from "lucide-react";
+import { useStore } from "../../../context/StoreContext";
+import { useAuth } from "../../../context/AuthContext";
+import { useTranslation } from "../../../hooks/useTranslation";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../../components/ui/dialog";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Textarea } from "../../components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../../components/ui/alert-dialog";
+import { Badge } from "../../components/ui/badge";
+import { Switch } from "../../components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+
+export default function AdminUsers() {
+  const { adminUsers, addAdminUser, updateAdminUser, deleteAdminUser } = useStore();
+  const { currentUser } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [newUser, setNewUser] = useState({
+    username: "",
+    email: "",
+    password: "",
+    role: "admin" as "admin" | "superadmin",
+    isActive: true,
+  });
+
+  const filteredUsers = adminUsers.filter(user =>
+    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleSaveUser = async () => {
+    if (!newUser.username || !newUser.email) return;
+    if (editingUser) {
+      await updateAdminUser(editingUser.id, newUser);
+    } else {
+      await addAdminUser(newUser);
+    }
+    setIsAddDialogOpen(false);
+    setEditingUser(null);
+    setNewUser({
+      username: "",
+      email: "",
+      password: "",
+      role: "admin",
+      isActive: true,
+    });
+  };
+
+  const handleEditUser = (user: any) => {
+    setEditingUser(user);
+    setNewUser({
+      username: user.username,
+      email: user.email,
+      password: "",
+      role: user.role,
+      isActive: user.isActive,
+    });
+    setIsAddDialogOpen(true);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-[#1c1917]" style={{ fontFamily: "'Playfair Display', serif" }}>
+            Admin Users
+          </h1>
+          <p className="text-[#78746e] mt-1">Manage admin accounts and permissions</p>
+        </div>
+        {currentUser?.role === "superadmin" && (
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#2d5a3d] hover:bg-[#244a33] text-white">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Admin User
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{editingUser ? "Edit Admin User" : "Add New Admin User"}</DialogTitle>
+                <DialogDescription>
+                  {editingUser ? "Update admin user details" : "Add a new admin user to the system"}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    value={newUser.username}
+                    onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                    placeholder="Enter username"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                    placeholder="admin@example.com"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="password">
+                    {editingUser ? "New Password (leave blank to keep current)" : "Password"}
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                    placeholder="Enter password"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="role">Role</Label>
+                  <Select
+                    value={newUser.role}
+                    onValueChange={(value: "admin" | "superadmin") => setNewUser({ ...newUser, role: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="superadmin">Super Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="isActive"
+                    checked={newUser.isActive}
+                    onCheckedChange={(checked) => setNewUser({ ...newUser, isActive: checked })}
+                  />
+                  <Label htmlFor="isActive">Account Active</Label>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <Button variant="secondary" onClick={() => {
+                  setIsAddDialogOpen(false);
+                  setEditingUser(null);
+                }}>
+                  Cancel
+                </Button>
+                <Button className="bg-[#2d5a3d] hover:bg-[#244a33]" onClick={handleSaveUser}>
+                  {editingUser ? "Update User" : "Add User"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+
+      {/* Search */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#2d5a3d]/5">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#78746e]" />
+          <Input
+            type="text"
+            placeholder="Search admin users..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-11"
+          />
+        </div>
+      </div>
+
+      {/* Admin Users Grid */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredUsers.map((user) => {
+          const isCurrentUser = currentUser?.id === user.id;
+          return (
+            <Card key={user.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#2d5a3d] to-[#0b7c33] flex items-center justify-center">
+                    <User className="h-7 w-7 text-white" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className={user.role === "superadmin" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}>
+                      {user.role === "superadmin" ? "Super Admin" : "Admin"}
+                    </Badge>
+                    {!user.isActive && (
+                      <Badge variant="outline" className="text-red-600 border-red-200">
+                        Inactive
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <CardTitle className="mt-4 text-xl">{user.username}</CardTitle>
+                <CardDescription className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  {user.email}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center gap-2 text-sm text-[#78746e]">
+                    <Shield className="h-4 w-4" />
+                    <span>Role: {user.role}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-[#78746e]">
+                    <Lock className="h-4 w-4" />
+                    <span>Created: {new Date(user.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {currentUser?.role === "superadmin" && (
+                    <>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleEditUser(user)}
+                        className="flex-1"
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      {!isCurrentUser && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Admin User?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{user.username}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteAdminUser(user.id)} className="bg-red-600">
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

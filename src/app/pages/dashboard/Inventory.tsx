@@ -1,0 +1,949 @@
+import { useState } from "react";
+import { useStore } from "../../../context/StoreContext";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  MoreHorizontal,
+  X,
+  Save,
+  ArrowRight,
+  Package,
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
+  DollarSign,
+  Filter,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../../components/ui/dialog";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Textarea } from "../../components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/ui/tabs";
+
+export default function Inventory() {
+  const {
+    products,
+    inventoryTransactions,
+    adjustStock,
+    getInventoryValue,
+    getLowStockProducts,
+    getProductInventoryTransactions,
+    getExpiringBatches,
+    addBatch,
+    updateBatch,
+    deleteBatch,
+    settings,
+  } = useStore();
+  const [selectedProductForBatch, setSelectedProductForBatch] = useState<any>(null);
+  const [batchModalOpen, setBatchModalOpen] = useState(false);
+  const [batchForm, setBatchForm] = useState({
+    batchNumber: "",
+    quantity: 0,
+    receivedDate: new Date().toISOString().split('T')[0],
+    expiryDate: "",
+    supplier: "",
+    costPrice: 0,
+  });
+  const [editBatchId, setEditBatchId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [stockAdjustment, setStockAdjustment] = useState({
+    quantity: 0,
+    reason: "",
+  });
+  const [activeTab, setActiveTab] = useState("overview");
+  const [selectedTransactionProduct, setSelectedTransactionProduct] = useState<number | null>(null);
+
+  const categories = ["All", ...Array.from(new Set(products.map((p) => p.category)))];
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    (selectedCategory === "All" || product.category === selectedCategory)
+  );
+
+  const lowStockProducts = getLowStockProducts();
+  const inventoryValue = getInventoryValue();
+  const totalProducts = products.length;
+  const outOfStockProducts = products.filter((p) => p.stock === 0).length;
+  const inStockProducts = products.filter((p) => p.status === "In Stock").length;
+
+  const getStatusStyles = (status: string) => {
+    switch (status) {
+      case "In Stock":
+        return "bg-[#e8f5ed] text-[#2d5a3d]";
+      case "Low Stock":
+        return "bg-[#fef3c7] text-[#92400e]";
+      case "Out of Stock":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getTransactionTypeStyles = (type: string) => {
+    switch (type) {
+      case "in":
+        return "bg-[#e8f5ed] text-[#2d5a3d]";
+      case "out":
+        return "bg-red-100 text-red-700";
+      case "adjustment":
+        return "bg-[#fef3c7] text-[#92400e]";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getTransactionIcon = (type: string) => {
+    switch (type) {
+      case "in":
+        return <ArrowUp className="h-4 w-4" />;
+      case "out":
+        return <ArrowDown className="h-4 w-4" />;
+      case "adjustment":
+        return <Edit className="h-4 w-4" />;
+      default:
+        return <MoreHorizontal className="h-4 w-4" />;
+    }
+  };
+
+  const handleAdjustStock = () => {
+    if (!selectedProduct || stockAdjustment.quantity === 0 || !stockAdjustment.reason) return;
+    adjustStock(selectedProduct.id, stockAdjustment.quantity, stockAdjustment.reason);
+    setSelectedProduct(null);
+    setStockAdjustment({ quantity: 0, reason: "" });
+  };
+
+  const stats = [
+    {
+      title: "Total Inventory Value",
+      value: "₹" + inventoryValue.toLocaleString(),
+      icon: DollarSign,
+      color: "from-[#2d5a3d] to-[#0b7c33]",
+      bg: "bg-[#2d5a3d]/10",
+      badge: "Current",
+    },
+    {
+      title: "Total Products",
+      value: totalProducts.toString(),
+      icon: Package,
+      color: "from-[#c8a96e] to-[#a88b55]",
+      bg: "bg-[#c8a96e]/10",
+      badge: "In catalog",
+    },
+    {
+      title: "In Stock",
+      value: inStockProducts.toString(),
+      icon: TrendingUp,
+      color: "from-[#4a9d7a] to-[#3a8d6a]",
+      bg: "bg-[#4a9d7a]/10",
+      badge: "Available",
+    },
+    {
+      title: "Out of Stock",
+      value: outOfStockProducts.toString(),
+      icon: TrendingDown,
+      color: "from-red-500 to-red-700",
+      bg: "bg-red-100",
+      badge: "Need restock",
+    },
+  ];
+
+  return (
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-[#1c1917]" style={{ fontFamily: "'Playfair Display', serif" }}>
+            Inventory Management
+          </h1>
+          <p className="text-[#78746e] mt-1">Track and manage your tea inventory</p>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <div
+              key={stat.title}
+              className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-[#2d5a3d]/5 hover:border-[#2d5a3d]/15"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-sm`}>
+                  <Icon className="h-6 w-6 text-white" />
+                </div>
+                <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-[#f9f7f4] text-[#78746e]">
+                  {stat.badge}
+                </span>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-[#78746e] font-medium">{stat.title}</p>
+                <p className="text-3xl font-bold text-[#1c1917]">{stat.value}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Tabs */}
+      <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full md:w-auto grid-cols-2 md:grid-cols-4 mb-6 bg-[#f9f7f4] p-1 rounded-xl">
+          <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="products" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Products
+          </TabsTrigger>
+          <TabsTrigger value="batches" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Batches
+          </TabsTrigger>
+          <TabsTrigger value="transactions" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Transactions
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          {(() => {
+            const expiringBatches = getExpiringBatches(30);
+            return expiringBatches.length > 0 && (
+              <div className="bg-orange-50 border border-orange-400 rounded-2xl p-6">
+                <div className="flex items-start gap-4">
+                  <AlertTriangle className="h-6 w-6 text-orange-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-orange-800">
+                      Expiring Soon!
+                    </h3>
+                    <p className="text-orange-700 mt-1">
+                      You have {expiringBatches.length} batch{expiringBatches.length > 1 ? "es" : ""} expiring in the next 30 days.
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {expiringBatches.slice(0, 5).map(({ product, batch }) => (
+                        <span
+                          key={batch.id}
+                          className="px-3 py-1.5 bg-white rounded-full text-sm font-medium text-[#1c1917] border border-orange-300"
+                        >
+                          {product.name} - {batch.batchNumber} ({new Date(batch.expiryDate!).toLocaleDateString()})
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <Button
+                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                    onClick={() => setActiveTab("batches")}
+                  >
+                    View All
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
+          {lowStockProducts.length > 0 && (
+            <div className="bg-[#fef3c7] border border-[#f59e0b] rounded-2xl p-6">
+              <div className="flex items-start gap-4">
+                <AlertTriangle className="h-6 w-6 text-[#92400e] flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-[#92400e]">
+                    Low Stock Alert!
+                  </h3>
+                  <p className="text-[#78350f] mt-1">
+                    You have {lowStockProducts.length} product{lowStockProducts.length > 1 ? "s" : ""} running low on stock.
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {lowStockProducts.map((product) => (
+                      <span
+                        key={product.id}
+                        className="px-3 py-1.5 bg-white rounded-full text-sm font-medium text-[#1c1917] border border-[#f59e0b]/30"
+                      >
+                        {product.name} ({product.stock} units)
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <Button
+                  className="bg-[#92400e] hover:bg-[#78350f] text-white"
+                  onClick={() => setActiveTab("products")}
+                >
+                  View All
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Stock Overview Table */}
+          <div className="bg-white rounded-2xl shadow-sm border border-[#2d5a3d]/5 overflow-hidden">
+            <div className="p-6 border-b border-[#2d5a3d]/5">
+              <h2 className="text-lg font-semibold text-[#1c1917]">Stock Status Overview</h2>
+              <p className="text-sm text-[#78746e]">Current stock levels for all products</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left text-sm text-[#78746e] bg-[#f9f7f4] border-b border-[#2d5a3d]/5">
+                    <th className="px-6 py-4 font-medium">Product</th>
+                    <th className="px-6 py-4 font-medium">Category</th>
+                    <th className="px-6 py-4 font-medium">Price</th>
+                    <th className="px-6 py-4 font-medium">Stock</th>
+                    <th className="px-6 py-4 font-medium">Status</th>
+                    <th className="px-6 py-4 font-medium text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#2d5a3d]/5">
+                  {filteredProducts.slice(0, 8).map((product) => (
+                    <tr key={product.id} className="group hover:bg-[#f9f7f4] transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#2d5a3d]/10">
+                            {product.imageUrl ? (
+                              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-[#2d5a3d] to-[#0b7c33] flex items-center justify-center text-white">
+                                🍃
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium text-[#1c1917]">{product.name}</p>
+                            {product.description && (
+                              <p className="text-xs text-[#78746e] truncate max-w-[200px]">
+                                {product.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-[#78746e]">{product.category}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-semibold text-[#1c1917]">₹{product.price}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-[#1c1917]">{product.stock} units</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusStyles(product.status)}`}>
+                          {product.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className="hover:bg-[#f0ede8]"
+                              onClick={() => setSelectedProduct(product)}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Adjust
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Adjust Stock for {selectedProduct?.name}</DialogTitle>
+                              <DialogDescription>
+                                Current stock: {selectedProduct?.stock} units
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                              <div className="grid gap-2">
+                                <Label htmlFor="quantity">Quantity (positive to add, negative to remove)</Label>
+                                <Input
+                                  id="quantity"
+                                  type="number"
+                                  value={stockAdjustment.quantity}
+                                  onChange={(e) =>
+                                    setStockAdjustment({ ...stockAdjustment, quantity: Number(e.target.value) })
+                                  }
+                                  placeholder="e.g., 50 or -10"
+                                />
+                              </div>
+                              <div className="grid gap-2">
+                                <Label htmlFor="reason">Reason</Label>
+                                <Textarea
+                                  id="reason"
+                                  value={stockAdjustment.reason}
+                                  onChange={(e) =>
+                                    setStockAdjustment({ ...stockAdjustment, reason: e.target.value })
+                                  }
+                                  placeholder="e.g., Restock from supplier, Return, etc."
+                                />
+                              </div>
+                            </div>
+                            <div className="flex justify-end gap-3">
+                              <Button
+                                variant="secondary"
+                                onClick={() => {
+                                  setSelectedProduct(null);
+                                  setStockAdjustment({ quantity: 0, reason: "" });
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                className="bg-[#2d5a3d] hover:bg-[#234832]"
+                                onClick={handleAdjustStock}
+                              >
+                                <Save className="h-4 w-4 mr-2" />
+                                Save
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {filteredProducts.length > 8 && (
+              <div className="p-6 border-t border-[#2d5a3d]/5">
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  onClick={() => setActiveTab("products")}
+                >
+                  View All Products
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Products Tab */}
+        <TabsContent value="products" className="space-y-6">
+          {/* Filters */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#2d5a3d]/5 flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#78746e]" />
+              <Input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-11"
+              />
+            </div>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Products Table */}
+          <div className="bg-white rounded-2xl shadow-sm border border-[#2d5a3d]/5 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left text-sm text-[#78746e] bg-[#f9f7f4] border-b border-[#2d5a3d]/5">
+                    <th className="px-6 py-4 font-medium">Product</th>
+                    <th className="px-6 py-4 font-medium">Category</th>
+                    <th className="px-6 py-4 font-medium">Price</th>
+                    <th className="px-6 py-4 font-medium">Stock</th>
+                    <th className="px-6 py-4 font-medium">Status</th>
+                    <th className="px-6 py-4 font-medium">Value</th>
+                    <th className="px-6 py-4 font-medium text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#2d5a3d]/5">
+                  {filteredProducts.map((product) => (
+                    <tr key={product.id} className="group hover:bg-[#f9f7f4] transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#2d5a3d]/10">
+                            {product.imageUrl ? (
+                              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-[#2d5a3d] to-[#0b7c33] flex items-center justify-center text-white">
+                                🍃
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium text-[#1c1917]">{product.name}</p>
+                            {product.description && (
+                              <p className="text-xs text-[#78746e] truncate max-w-[200px]">
+                                {product.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-[#78746e]">{product.category}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-semibold text-[#1c1917]">₹{product.price}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-[#1c1917]">{product.stock} units</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusStyles(product.status)}`}>
+                          {product.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-semibold text-[#1c1917]">
+                          ₹{(product.price * product.stock).toLocaleString()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className="hover:bg-[#f0ede8]"
+                              onClick={() => setSelectedProduct(product)}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Adjust Stock
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Adjust Stock for {selectedProduct?.name}</DialogTitle>
+                              <DialogDescription>
+                                Current stock: {selectedProduct?.stock} units
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                              <div className="grid gap-2">
+                                <Label htmlFor="quantity">Quantity (positive to add, negative to remove)</Label>
+                                <Input
+                                  id="quantity"
+                                  type="number"
+                                  value={stockAdjustment.quantity}
+                                  onChange={(e) =>
+                                    setStockAdjustment({ ...stockAdjustment, quantity: Number(e.target.value) })
+                                  }
+                                  placeholder="e.g., 50 or -10"
+                                />
+                              </div>
+                              <div className="grid gap-2">
+                                <Label htmlFor="reason">Reason</Label>
+                                <Textarea
+                                  id="reason"
+                                  value={stockAdjustment.reason}
+                                  onChange={(e) =>
+                                    setStockAdjustment({ ...stockAdjustment, reason: e.target.value })
+                                  }
+                                  placeholder="e.g., Restock from supplier, Return, etc."
+                                />
+                              </div>
+                            </div>
+                            <div className="flex justify-end gap-3">
+                              <Button
+                                variant="secondary"
+                                onClick={() => {
+                                  setSelectedProduct(null);
+                                  setStockAdjustment({ quantity: 0, reason: "" });
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                className="bg-[#2d5a3d] hover:bg-[#234832]"
+                                onClick={handleAdjustStock}
+                              >
+                                <Save className="h-4 w-4 mr-2" />
+                                Save
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Batches Tab */}
+        <TabsContent value="batches" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-semibold text-[#1c1917]">Batch Management</h2>
+              <p className="text-sm text-[#78746e]">Track inventory batches with expiry dates</p>
+            </div>
+            <Select onValueChange={(val) => {
+              const product = products.find(p => p.id === Number(val));
+              if (product) {
+                setSelectedProductForBatch(product);
+                setEditBatchId(null);
+                setBatchForm({
+                  batchNumber: `BATCH-${Date.now()}`,
+                  quantity: 0,
+                  receivedDate: new Date().toISOString().split('T')[0],
+                  expiryDate: "",
+                  supplier: "",
+                  costPrice: product.price * 0.5,
+                });
+                setBatchModalOpen(true);
+              }
+            }}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Add Batch..." />
+              </SelectTrigger>
+              <SelectContent>
+                {products.map((product) => (
+                  <SelectItem key={product.id} value={product.id.toString()}>
+                    {product.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Batches Table */}
+          <div className="bg-white rounded-2xl shadow-sm border border-[#2d5a3d]/5 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left text-sm text-[#78746e] bg-[#f9f7f4] border-b border-[#2d5a3d]/5">
+                    <th className="px-6 py-4 font-medium">Product</th>
+                    <th className="px-6 py-4 font-medium">Batch Number</th>
+                    <th className="px-6 py-4 font-medium">Quantity</th>
+                    <th className="px-6 py-4 font-medium">Received</th>
+                    <th className="px-6 py-4 font-medium">Expiry</th>
+                    <th className="px-6 py-4 font-medium">Supplier</th>
+                    <th className="px-6 py-4 font-medium">Status</th>
+                    <th className="px-6 py-4 font-medium text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#2d5a3d]/5">
+                  {products.flatMap((product) =>
+                    (product.batches || []).map((batch) => {
+                      const isExpiring = batch.expiryDate && new Date(batch.expiryDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+                      const isExpired = batch.expiryDate && new Date(batch.expiryDate) < new Date();
+                      
+                      return (
+                        <tr key={`${product.id}-${batch.id}`} className="hover:bg-[#f9f7f4] transition-colors">
+                          <td className="px-6 py-4">
+                            <span className="font-medium text-[#1c1917]">{product.name}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-[#1c1917] font-mono">{batch.batchNumber}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-[#1c1917]">{batch.quantity} units</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-[#78746e]">{new Date(batch.receivedDate).toLocaleDateString()}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            {batch.expiryDate ? (
+                              <span className={isExpired ? "text-red-600" : isExpiring ? "text-orange-600" : "text-[#78746e]"}>
+                                {new Date(batch.expiryDate).toLocaleDateString()}
+                              </span>
+                            ) : (
+                              <span className="text-[#78746e]">-</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-[#78746e]">{batch.supplier || "-"}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              isExpired ? "bg-red-100 text-red-700" :
+                              isExpiring ? "bg-orange-100 text-orange-700" :
+                              "bg-[#e8f5ed] text-[#2d5a3d]"
+                            }`}>
+                              {isExpired ? "Expired" : isExpiring ? "Expiring Soon" : "Active"}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedProductForBatch(product);
+                                  setEditBatchId(batch.id);
+                                  setBatchForm({
+                                    batchNumber: batch.batchNumber,
+                                    quantity: batch.quantity,
+                                    receivedDate: new Date(batch.receivedDate).toISOString().split('T')[0],
+                                    expiryDate: batch.expiryDate ? new Date(batch.expiryDate).toISOString().split('T')[0] : "",
+                                    supplier: batch.supplier || "",
+                                    costPrice: batch.costPrice,
+                                  });
+                                  setBatchModalOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => deleteBatch(product.id, batch.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                  {products.every(p => !p.batches || p.batches.length === 0) && (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-12 text-center text-[#78746e]">
+                        No batches yet. Add a batch to track inventory with expiry dates.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Batch Modal */}
+          <Dialog open={batchModalOpen} onOpenChange={setBatchModalOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>
+                  {editBatchId ? "Edit Batch" : "Add New Batch"}
+                </DialogTitle>
+                <DialogDescription>
+                  {selectedProductForBatch?.name}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="batchNumber">Batch Number</Label>
+                  <Input
+                    id="batchNumber"
+                    value={batchForm.batchNumber}
+                    onChange={(e) => setBatchForm({ ...batchForm, batchNumber: e.target.value })}
+                    placeholder="BATCH-001"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="quantity">Quantity</Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    value={batchForm.quantity}
+                    onChange={(e) => setBatchForm({ ...batchForm, quantity: Number(e.target.value) })}
+                    placeholder="0"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="receivedDate">Received Date</Label>
+                  <Input
+                    id="receivedDate"
+                    type="date"
+                    value={batchForm.receivedDate}
+                    onChange={(e) => setBatchForm({ ...batchForm, receivedDate: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="expiryDate">Expiry Date (Optional)</Label>
+                  <Input
+                    id="expiryDate"
+                    type="date"
+                    value={batchForm.expiryDate}
+                    onChange={(e) => setBatchForm({ ...batchForm, expiryDate: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="supplier">Supplier (Optional)</Label>
+                  <Input
+                    id="supplier"
+                    value={batchForm.supplier}
+                    onChange={(e) => setBatchForm({ ...batchForm, supplier: e.target.value })}
+                    placeholder="Supplier name"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="costPrice">Cost Price</Label>
+                  <Input
+                    id="costPrice"
+                    type="number"
+                    value={batchForm.costPrice}
+                    onChange={(e) => setBatchForm({ ...batchForm, costPrice: Number(e.target.value) })}
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setBatchModalOpen(false);
+                    setSelectedProductForBatch(null);
+                    setEditBatchId(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-[#2d5a3d] hover:bg-[#234832]"
+                  onClick={() => {
+                    if (!selectedProductForBatch) return;
+                    
+                    if (editBatchId) {
+                      updateBatch(selectedProductForBatch.id, editBatchId, batchForm);
+                    } else {
+                      addBatch(selectedProductForBatch.id, batchForm);
+                    }
+                    setBatchModalOpen(false);
+                    setSelectedProductForBatch(null);
+                    setEditBatchId(null);
+                  }}
+                >
+                  {editBatchId ? "Update" : "Add"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </TabsContent>
+
+        {/* Transactions Tab */}
+        <TabsContent value="transactions" className="space-y-6">
+          {/* Filters */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#2d5a3d]/5">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-[#78746e]" />
+              <Label htmlFor="product-filter" className="text-sm font-medium text-[#1c1917]">
+                Filter by product:
+              </Label>
+              <Select
+                value={selectedTransactionProduct?.toString() || "all"}
+                onValueChange={(val) =>
+                  setSelectedTransactionProduct(val === "all" ? null : Number(val))
+                }
+              >
+                <SelectTrigger id="product-filter" className="w-[250px]">
+                  <SelectValue placeholder="All products" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All products</SelectItem>
+                  {products.map((product) => (
+                    <SelectItem key={product.id} value={product.id.toString()}>
+                      {product.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Transactions Table */}
+          <div className="bg-white rounded-2xl shadow-sm border border-[#2d5a3d]/5 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left text-sm text-[#78746e] bg-[#f9f7f4] border-b border-[#2d5a3d]/5">
+                    <th className="px-6 py-4 font-medium">Product</th>
+                    <th className="px-6 py-4 font-medium">Type</th>
+                    <th className="px-6 py-4 font-medium">Quantity</th>
+                    <th className="px-6 py-4 font-medium">Stock Change</th>
+                    <th className="px-6 py-4 font-medium">Reason</th>
+                    <th className="px-6 py-4 font-medium">Reference</th>
+                    <th className="px-6 py-4 font-medium">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#2d5a3d]/5">
+                  {(selectedTransactionProduct
+                    ? getProductInventoryTransactions(selectedTransactionProduct)
+                    : inventoryTransactions
+                  ).map((transaction) => (
+                    <tr key={transaction.id} className="hover:bg-[#f9f7f4] transition-colors">
+                      <td className="px-6 py-4">
+                        <span className="font-medium text-[#1c1917]">{transaction.productName}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${getTransactionTypeStyles(
+                            transaction.type
+                          )}`}
+                        >
+                          {getTransactionIcon(transaction.type)}
+                          {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-[#1c1917]">{transaction.quantity} units</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-[#78746e]">
+                          {transaction.previousStock} → {transaction.newStock}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-[#1c1917] max-w-[200px] truncate">
+                          {transaction.reason}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {transaction.referenceId ? (
+                          <span className="text-[#2d5a3d] font-medium">
+                            {transaction.referenceId}
+                          </span>
+                        ) : (
+                          <span className="text-[#78746e]">-</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-[#78746e]">
+                          {new Date(transaction.timestamp).toLocaleString()}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                  {inventoryTransactions.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-12 text-center text-[#78746e]">
+                        No transactions yet. Transactions will appear here when stock is adjusted or orders are placed.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
