@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Search, Mail, Edit, Trash2, User, Shield, Lock } from "lucide-react";
-import { useStore } from "../../../context/StoreContext";
 import { useAuth } from "../../../context/AuthContext";
 import { useTranslation } from "../../../hooks/useTranslation";
+import { api } from "../../../lib/api-client";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -38,8 +39,8 @@ import { Switch } from "../../components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 
 export default function AdminUsers() {
-  const { adminUsers, addAdminUser, updateAdminUser, deleteAdminUser } = useStore();
   const { currentUser, userType } = useAuth();
+  const [adminUsers, setAdminUsers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
@@ -50,6 +51,21 @@ export default function AdminUsers() {
     role: "admin" as "admin" | "superadmin",
     isActive: true,
   });
+  
+  // Fetch admin users from API on mount
+  const fetchAdminUsers = async () => {
+    try {
+      const users = await api.get('/admin-users');
+      setAdminUsers(users);
+    } catch (error) {
+      console.error('Failed to fetch admin users:', error);
+      toast.error('Failed to load admin users');
+    }
+  };
+  
+  useEffect(() => {
+    fetchAdminUsers();
+  }, []);
 
   const filteredUsers = adminUsers.filter(user =>
     user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -57,21 +73,48 @@ export default function AdminUsers() {
   );
 
   const handleSaveUser = async () => {
-    if (!newUser.username || !newUser.email) return;
-    if (editingUser) {
-      await updateAdminUser(editingUser.id, newUser);
-    } else {
-      await addAdminUser(newUser);
+    if (!newUser.username || !newUser.email) {
+      toast.error("Please fill in username and email");
+      return;
     }
-    setIsAddDialogOpen(false);
-    setEditingUser(null);
-    setNewUser({
-      username: "",
-      email: "",
-      password: "",
-      role: "admin",
-      isActive: true,
-    });
+    if (!editingUser && !newUser.password) {
+      toast.error("Please enter a password for the new user");
+      return;
+    }
+    try {
+      if (editingUser) {
+        await api.put(`/admin-users/${editingUser.id}`, newUser);
+        toast.success("Admin user updated successfully!");
+      } else {
+        await api.post('/admin-users', newUser);
+        toast.success("Admin user created successfully!");
+      }
+      // Refresh the admin users list
+      await fetchAdminUsers();
+      setIsAddDialogOpen(false);
+      setEditingUser(null);
+      setNewUser({
+        username: "",
+        email: "",
+        password: "",
+        role: "admin",
+        isActive: true,
+      });
+    } catch (error) {
+      console.error('Failed to save admin user:', error);
+      toast.error("Failed to save admin user. Please try again.");
+    }
+  };
+  
+  const handleDeleteUser = async (id: number) => {
+    try {
+      await api.delete(`/admin-users/${id}`);
+      await fetchAdminUsers();
+      toast.success("Admin user deleted successfully!");
+    } catch (error) {
+      console.error('Failed to delete admin user:', error);
+      toast.error("Failed to delete admin user. Please try again.");
+    }
   };
 
   const handleEditUser = (user: any) => {
@@ -264,7 +307,7 @@ export default function AdminUsers() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => deleteAdminUser(user.id)} className="bg-red-600">
+                              <AlertDialogAction onClick={() => handleDeleteUser(user.id)} className="bg-red-600">
                                 Delete
                               </AlertDialogAction>
                             </AlertDialogFooter>

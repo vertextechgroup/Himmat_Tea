@@ -3,6 +3,11 @@ import { prisma } from '@/lib/prisma'
 import { createResponse, handleApiError } from '@/lib/api-utils'
 import bcrypt from 'bcryptjs'
 
+// Accept both GET and POST for easy seeding
+export async function GET() {
+  return POST();
+}
+
 export async function POST() {
   try {
     // Check if already seeded

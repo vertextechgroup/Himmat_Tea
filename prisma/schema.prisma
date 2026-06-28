@@ -3,52 +3,49 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 model Product {
-  id          Int       @id @default(autoincrement())
-  name        String
-  category    String
-  price       Float
-  stock       Int
-  status      String    @default("In Stock")
-  description String
-  imageUrl    String
-  sku         String?
-  reorderPoint Int?    @default(50)
-  hasVariants Boolean   @default(false)
-  variantOptions Json?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  // Relations
-  productVariants       ProductVariant[]
+  id                    Int                    @id @default(autoincrement())
+  name                  String
+  category              String
+  price                 Float
+  stock                 Int
+  status                String                 @default("In Stock")
+  description           String
+  imageUrl              String
+  sku                   String?
+  reorderPoint          Int?                   @default(50)
+  hasVariants           Boolean                @default(false)
+  variantOptions        String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
   batches               Batch[]
-  orderItems            OrderItem[]
-  reviews               Review[]
   collectionItems       CollectionItem[]
   inventoryTransactions InventoryTransaction[]
+  orderItems            OrderItem[]
+  productVariants       ProductVariant[]
   purchaseOrderItems    PurchaseOrderItem[]
+  reviews               Review[]
 }
 
 model ProductVariant {
   id        Int      @id @default(autoincrement())
   productId Int
   sku       String
-  variants  Json
+  variants  String
   price     Float
   stock     Int
   imageUrl  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Batch {
-  id           Int       @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   productId    Int
   batchNumber  String
   quantity     Int
@@ -56,53 +53,48 @@ model Batch {
   expiryDate   String?
   supplier     String?
   costPrice    Float
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Customer {
-  id            Int       @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   name          String
-  email         String    @unique
+  email         String   @unique
   phone         String
   address       String
-  ordersCount   Int       @default(0)
-  totalSpent    Float     @default(0)
-  loyaltyPoints Int       @default(0)
-  tier          String    @default("Bronze")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // Relations
-  orders Order[]
+  ordersCount   Int      @default(0)
+  totalSpent    Float    @default(0)
+  loyaltyPoints Int      @default(0)
+  tier          String   @default("Bronze")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  orders        Order[]
 }
 
 model Order {
-  id            String        @id @default(cuid())
-  customerId    Int
-  customerName  String
-  customerEmail String
-  customerPhone String
+  id              String         @id @default(cuid())
+  customerId      Int
+  customerName    String
+  customerEmail   String
+  customerPhone   String
   shippingAddress String
-  total         Float
-  tax           Float
-  grandTotal    Float
-  status        String        @default("Pending")
-  paymentStatus String        @default("Unpaid")
-  orderDate     DateTime      @default(now())
-  trackingNumber String?
-  courierPartner String?
-  refundReason  String?
-  refundAmount  Float?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-
-  // Relations
-  customer      Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  items         OrderItem[]
-  internalNotes InternalNote[]
+  total           Float
+  tax             Float
+  grandTotal      Float
+  status          String         @default("Pending")
+  paymentStatus   String         @default("Unpaid")
+  orderDate       DateTime       @default(now())
+  trackingNumber  String?
+  courierPartner  String?
+  refundReason    String?
+  refundAmount    Float?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  internalNotes   InternalNote[]
+  customer        Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items           OrderItem[]
 }
 
 model OrderItem {
@@ -115,9 +107,8 @@ model OrderItem {
   weight    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model InternalNote {
@@ -127,34 +118,32 @@ model InternalNote {
   adminId   String
   adminName String
   timestamp DateTime @default(now())
-
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model AdminUser {
-  id        Int       @id @default(autoincrement())
-  username  String    @unique
-  email     String    @unique
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  email        String   @unique
   passwordHash String
-  role      String    @default("admin")
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  role         String   @default("admin")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Review {
-  id        Int       @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   productId Int
   name      String
   initials  String
   rating    Int
   date      String
   comment   String
-  status    String    @default("Approved")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  status    String   @default("Approved")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model BlogPost {
@@ -166,65 +155,63 @@ model BlogPost {
   excerpt   String
   image     String
   readTime  String
-  body      Json
+  body      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Coupon {
-  id          String    @id @default(cuid())
-  code        String    @unique
-  discountType String
-  discountValue Float
+  id             String   @id @default(cuid())
+  code           String   @unique
+  discountType   String
+  discountValue  Float
   minOrderAmount Float
-  maxDiscount Float
-  validFrom   String
-  validTo     String
-  usageLimit  Int
-  usedCount   Int       @default(0)
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  maxDiscount    Float
+  validFrom      String
+  validTo        String
+  usageLimit     Int
+  usedCount      Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model Collection {
-  id          String    @id @default(cuid())
+  id          String           @id @default(cuid())
   title       String
-  slug        String    @unique
+  slug        String           @unique
   description String
   image       String
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  items CollectionItem[]
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  items       CollectionItem[]
 }
 
 model CollectionItem {
-  id           Int      @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   collectionId String
   productId    Int
-  createdAt    DateTime @default(now())
-
-  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
 
   @@unique([collectionId, productId])
 }
 
 model BrewingGuide {
-  id          String    @id @default(cuid())
-  title       String
-  slug        String    @unique
-  teaType     String
-  description String
-  waterTemp   String
+  id           String   @id @default(cuid())
+  title        String
+  slug         String   @unique
+  teaType      String
+  description  String
+  waterTemp    String
   steepingTime String
   leafQuantity String
-  image       String
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  image        String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model FAQ {
@@ -246,79 +233,76 @@ model AboutPage {
   missionText  String
   storyTitle   String
   storyText    String
-  values       Json
+  values       String
   updatedAt    DateTime @updatedAt
 }
 
 model InventoryTransaction {
-  id           Int       @id @default(autoincrement())
-  productId    Int
-  productName  String
-  type         String
-  quantity     Int
+  id            Int      @id @default(autoincrement())
+  productId     Int
+  productName   String
+  type          String
+  quantity      Int
   previousStock Int
-  newStock     Int
-  reason       String
-  referenceId  String?
-  timestamp    DateTime  @default(now())
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  newStock      Int
+  reason        String
+  referenceId   String?
+  timestamp     DateTime @default(now())
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
-  id        Int       @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   title     String
   message   String
   orderId   String?
-  timestamp DateTime  @default(now())
-  read      Boolean   @default(false)
+  timestamp DateTime @default(now())
+  read      Boolean  @default(false)
 }
 
 model PurchaseOrder {
-  id               Int               @id @default(autoincrement())
+  id               Int                 @id @default(autoincrement())
   poNumber         String
   supplier         String
   total            Float
-  status           String            @default("Draft")
+  status           String              @default("Draft")
   orderDate        String
   expectedDelivery String?
   receivedDate     String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-
-  items PurchaseOrderItem[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  items            PurchaseOrderItem[]
 }
 
 model PurchaseOrderItem {
-  id               Int      @id @default(autoincrement())
-  purchaseOrderId  Int
-  productId        Int
-  productName      String
-  quantity         Int
-  unitPrice        Float
-  total            Float
-  createdAt        DateTime @default(now())
-
-  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
-  product       Product       @relation(fields: [productId], references: [id])
+  id              Int           @id @default(autoincrement())
+  purchaseOrderId Int
+  productId       Int
+  productName     String
+  quantity        Int
+  unitPrice       Float
+  total           Float
+  createdAt       DateTime      @default(now())
+  product         Product       @relation(fields: [productId], references: [id])
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
 }
 
 model Settings {
-  id            String   @id @default(cuid())
-  taxRate       Float    @default(18)
-  currency      String   @default("₹")
-  storeName     String   @default("Himmat Tea")
-  storeEmail    String   @default("support@himmattea.com")
-  storePhone    String   @default("+91 9876543210")
-  notificationsEnabled Boolean @default(true)
-  lowStockThreshold Int  @default(30)
-  gstNumber     String?
-  updatedAt     DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  taxRate              Float    @default(18)
+  currency             String   @default("₹")
+  storeName            String   @default("Himmat Tea")
+  storeEmail           String   @default("support@himmattea.com")
+  storePhone           String   @default("+91 9876543210")
+  notificationsEnabled Boolean  @default(true)
+  lowStockThreshold    Int      @default(30)
+  gstNumber            String?
+  updatedAt            DateTime @updatedAt
 }
 
 model LoyaltyProgram {
   id             String   @id @default(cuid())
   pointsPerRupee Int      @default(1)
-  tiers          Json
+  tiers          String
   updatedAt      DateTime @updatedAt
 }

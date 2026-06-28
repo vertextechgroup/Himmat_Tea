@@ -24,7 +24,17 @@ export async function GET(request: NextRequest, { params }: Params) {
       return createErrorResponse('Product not found', 404)
     }
     
-    return createResponse(product)
+    // Parse JSON strings back to objects
+    const parsedProduct = {
+      ...product,
+      variantOptions: product.variantOptions ? JSON.parse(product.variantOptions) : null,
+      productVariants: product.productVariants.map(variant => ({
+        ...variant,
+        variants: JSON.parse(variant.variants)
+      }))
+    }
+    
+    return createResponse(parsedProduct)
   } catch (error) {
     return handleApiError(error)
   }
@@ -35,9 +45,15 @@ export async function PUT(request: NextRequest, { params }: Params) {
     const { id } = await params
     const body = await request.json()
     
+    // Stringify JSON fields before saving
+    const data = {
+      ...body,
+      variantOptions: body.variantOptions ? JSON.stringify(body.variantOptions) : body.variantOptions
+    }
+    
     const product = await prisma.product.update({
       where: { id: parseInt(id) },
-      data: body,
+      data,
       include: {
         productVariants: true,
         batches: true,
@@ -47,7 +63,17 @@ export async function PUT(request: NextRequest, { params }: Params) {
       }
     })
     
-    return createResponse(product)
+    // Parse JSON strings back to objects
+    const parsedProduct = {
+      ...product,
+      variantOptions: product.variantOptions ? JSON.parse(product.variantOptions) : null,
+      productVariants: product.productVariants.map(variant => ({
+        ...variant,
+        variants: JSON.parse(variant.variants)
+      }))
+    }
+    
+    return createResponse(parsedProduct)
   } catch (error) {
     return handleApiError(error)
   }

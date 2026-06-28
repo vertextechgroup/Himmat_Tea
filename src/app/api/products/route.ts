@@ -14,7 +14,18 @@ export async function GET() {
       },
       orderBy: { id: 'desc' }
     })
-    return createResponse(products)
+    
+    // Parse JSON strings back to objects
+    const parsedProducts = products.map(product => ({
+      ...product,
+      variantOptions: product.variantOptions ? JSON.parse(product.variantOptions) : null,
+      productVariants: product.productVariants.map(variant => ({
+        ...variant,
+        variants: JSON.parse(variant.variants)
+      }))
+    }))
+    
+    return createResponse(parsedProducts)
   } catch (error) {
     return handleApiError(error)
   }
@@ -23,8 +34,15 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    
+    // Stringify JSON fields before saving
+    const data = {
+      ...body,
+      variantOptions: body.variantOptions ? JSON.stringify(body.variantOptions) : null
+    }
+    
     const product = await prisma.product.create({
-      data: body,
+      data,
       include: {
         productVariants: true,
         batches: true,
@@ -33,7 +51,18 @@ export async function POST(request: NextRequest) {
         inventoryTransactions: true
       }
     })
-    return createResponse(product, 201)
+    
+    // Parse back for response
+    const parsedProduct = {
+      ...product,
+      variantOptions: product.variantOptions ? JSON.parse(product.variantOptions) : null,
+      productVariants: product.productVariants.map(variant => ({
+        ...variant,
+        variants: JSON.parse(variant.variants)
+      }))
+    }
+    
+    return createResponse(parsedProduct, 201)
   } catch (error) {
     return handleApiError(error)
   }
