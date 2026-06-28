@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Outlet } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -140,7 +140,9 @@ export const router = createBrowserRouter([
     path: "/himmat_admin_8526/dashboard",
     element: (
       <ProtectedRoute>
-        <DashboardLayout />
+        <DashboardLayout>
+          <Outlet />
+        </DashboardLayout>
       </ProtectedRoute>
     ),
     children: [

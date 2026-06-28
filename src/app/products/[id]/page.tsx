@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import ProductDetail from '@/app/pages/ProductDetail';
+import { Suspense } from 'react';
 
 // Product data for metadata
 const productsData: Record<
@@ -145,5 +146,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default function ProductDetailPage() {
-  return <ProductDetail />;
+  return (
+    <Suspense fallback={<div>Loading product...</div>}>
+      <ProductDetail />
+    </Suspense>
+  );
 }

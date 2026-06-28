@@ -42,8 +42,12 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
     }
 
     // Check sessionStorage first
-    const cachedVersion = sessionStorage.getItem(`tr_${newLang}_version`);
-    const cachedData = sessionStorage.getItem(`tr_${newLang}`);
+    let cachedVersion: string | null = null;
+    let cachedData: string | null = null;
+    if (typeof window !== 'undefined') {
+      cachedVersion = sessionStorage.getItem(`tr_${newLang}_version`);
+      cachedData = sessionStorage.getItem(`tr_${newLang}`);
+    }
     if (cachedVersion === TRANSLATION_VERSION && cachedData) {
       const parsedData = JSON.parse(cachedData);
       if (isValidCache(parsedData)) {
@@ -56,8 +60,10 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
     try {
       const localeModule = await import(`../locales/${newLang}.json`);
       const localeData = localeModule.default;
-      sessionStorage.setItem(`tr_${newLang}`, JSON.stringify(localeData));
-      sessionStorage.setItem(`tr_${newLang}_version`, TRANSLATION_VERSION);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(`tr_${newLang}`, JSON.stringify(localeData));
+        sessionStorage.setItem(`tr_${newLang}_version`, TRANSLATION_VERSION);
+      }
       setTranslations(localeData);
     } catch (err) {
       console.error('Failed to load translations, falling back to English', err);

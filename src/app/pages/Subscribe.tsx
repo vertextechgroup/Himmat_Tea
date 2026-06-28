@@ -355,14 +355,14 @@ export default function Subscribe() {
             <p className="text-center mt-8 text-sm text-[#78746e]">
               More questions?{" "}
               <Link
-                to="/faq"
+                href="/faq"
                 className="text-[#2d5a3d] hover:underline font-medium"
               >
                 Visit our full FAQ
               </Link>{" "}
               or{" "}
               <Link
-                to="/contact"
+                href="/contact"
                 className="text-[#2d5a3d] hover:underline font-medium"
               >
                 contact us

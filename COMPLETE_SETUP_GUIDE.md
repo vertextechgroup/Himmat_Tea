@@ -23,7 +23,12 @@ A complete production-ready backend system with:
 ```bash
 npm install
 ```
+CREATE DATABASE himmat_tea;
 
+npx prisma db push
+npx prisma generate
+http://localhost:3000/api/seed
+npx prisma studio
 ### Step 2: Set Up PostgreSQL
 
 1. Install PostgreSQL (if not installed)

@@ -1,20 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { mockDb } from '@/lib/mock-data'
+import { prisma } from '@/lib/prisma'
+import { createResponse, handleApiError } from '@/lib/api-utils'
 
 export async function GET() {
   try {
-    return NextResponse.json(mockDb.products)
+    const products = await prisma.product.findMany({
+      include: {
+        productVariants: true,
+        batches: true,
+        reviews: true,
+        collectionItems: { include: { collection: true } },
+        inventoryTransactions: true
+      },
+      orderBy: { id: 'desc' }
+    })
+    return createResponse(products)
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const newProduct = mockDb.addProduct(body)
-    return NextResponse.json(newProduct, { status: 201 })
+    const product = await prisma.product.create({
+      data: body,
+      include: {
+        productVariants: true,
+        batches: true,
+        reviews: true,
+        collectionItems: { include: { collection: true } },
+        inventoryTransactions: true
+      }
+    })
+    return createResponse(product, 201)
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
+    return handleApiError(error)
   }
 }

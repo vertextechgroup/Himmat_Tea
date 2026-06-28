@@ -40,6 +40,7 @@ export default function PurchaseOrders() {
     orderDate: new Date().toISOString().split("T")[0],
     expectedDeliveryDate: "",
     items: [] as any[],
+    total: 0,
   });
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [itemQuantity, setItemQuantity] = useState<number>(0);
@@ -133,6 +134,7 @@ export default function PurchaseOrders() {
       orderDate: new Date().toISOString().split("T")[0],
       expectedDeliveryDate: "",
       items: [],
+      total: 0,
     });
   };
 

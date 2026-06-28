@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navigation from "@/app/components/Navigation";
@@ -24,8 +24,13 @@ export default function CustomerAccount() {
   const { orders } = useStore();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!currentUser || userType !== 'customer') {
+      router.replace('/customer-auth?redirect=/account');
+    }
+  }, [currentUser, userType, router]);
+
   if (!currentUser || userType !== 'customer') {
-    router.replace('/customer-auth?redirect=/account');
     return null;
   }
 

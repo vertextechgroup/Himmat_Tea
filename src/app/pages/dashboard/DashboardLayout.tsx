@@ -49,7 +49,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const langDropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const { t, lang: selectedLang, setLang } = useTranslation();
-  const { logout, currentUser } = useAuth();
+  const { logout, currentUser, userType } = useAuth();
   const { notifications, markNotificationRead, clearNotifications, orders, addOrder, products } = useStore();
   const router = useRouter();
 
@@ -131,7 +131,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       href: "/himmat_admin_8526/dashboard/analytics", 
       icon: BarChart3 
     },
-    ...(currentUser?.role === "superadmin" ? [
+    ...(userType === "admin" && (currentUser as any)?.role === "superadmin" ? [
       { 
         name: t("dashboard.nav.adminUsers"), 
         href: "/himmat_admin_8526/dashboard/admin-users", 

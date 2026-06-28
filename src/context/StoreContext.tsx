@@ -56,6 +56,7 @@ interface Customer {
   totalSpent: number;
   loyaltyPoints: number;
   tier: "Bronze" | "Silver" | "Gold" | "Platinum";
+  createdAt: string;
 }
 
 interface LoyaltyProgram {
@@ -288,7 +289,7 @@ interface StoreContextType {
   addInternalNote: (orderId: string, text: string, adminId: string, adminName: string) => void;
   updateTrackingInfo: (orderId: string, trackingNumber?: string, courierPartner?: string) => void;
   bulkUpdateOrderStatus: (orderIds: string[], status: Order["status"]) => void;
-  addCustomer: (customer: Omit<Customer, "id" | "ordersCount" | "totalSpent" | "loyaltyPoints" | "tier">) => void;
+  addCustomer: (customer: Omit<Customer, "id" | "ordersCount" | "totalSpent" | "loyaltyPoints" | "tier" | "createdAt">) => void;
   updateCustomer: (id: number, customer: Partial<Customer>) => void;
   deleteCustomer: (id: number) => void;
   getCustomerOrders: (customerId: number) => Order[];
@@ -366,9 +367,9 @@ const sampleProducts: Product[] = [
 ];
 
 const sampleCustomers: Customer[] = [
-  { id: 1, name: "Sarah Johnson", email: "sarah@example.com", phone: "+91 9876543210", address: "123 Tea Street, Mumbai", ordersCount: 14, totalSpent: 5231, loyaltyPoints: 523, tier: "Silver" },
-  { id: 2, name: "Michael Chen", email: "michael@example.com", phone: "+91 9876543211", address: "456 Herbal Lane, Delhi", ordersCount: 9, totalSpent: 3499, loyaltyPoints: 350, tier: "Bronze" },
-  { id: 3, name: "Emma Williams", email: "emma@example.com", phone: "+91 9876543212", address: "789 Green Tea Road, Bangalore", ordersCount: 23, totalSpent: 8921, loyaltyPoints: 892, tier: "Gold" },
+  { id: 1, name: "Sarah Johnson", email: "sarah@example.com", phone: "+91 9876543210", address: "123 Tea Street, Mumbai", ordersCount: 14, totalSpent: 5231, loyaltyPoints: 523, tier: "Silver", createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() },
+  { id: 2, name: "Michael Chen", email: "michael@example.com", phone: "+91 9876543211", address: "456 Herbal Lane, Delhi", ordersCount: 9, totalSpent: 3499, loyaltyPoints: 350, tier: "Bronze", createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString() },
+  { id: 3, name: "Emma Williams", email: "emma@example.com", phone: "+91 9876543212", address: "789 Green Tea Road, Bangalore", ordersCount: 23, totalSpent: 8921, loyaltyPoints: 892, tier: "Gold", createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString() },
 ];
 
 const sampleReviews: Review[] = [
@@ -692,6 +693,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             ...customer,
             loyaltyPoints: customer.loyaltyPoints || 0,
             tier: customer.tier || "Bronze",
+            createdAt: customer.createdAt || new Date().toISOString(),
           })));
         } catch (e) {}
       }
@@ -1016,7 +1018,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   // Admin user functions
-  const addAdminUser = async (user: Omit<AdminUser, "id" | "createdAt"> & { password: string }) => {
+  const addAdminUser = async (user: Omit<AdminUser, "id" | "createdAt" | "passwordHash"> & { password: string }) => {
     const passwordHash = await hashPassword(user.password);
     const newUser: AdminUser = {
       id: Date.now(),
@@ -1032,11 +1034,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const updateAdminUser = async (id: number, updates: Partial<AdminUser> & { password?: string }) => {
-    let finalUpdates: Partial<AdminUser> = { ...updates };
-    if (updates.password) {
-      const passwordHash = await hashPassword(updates.password);
-      finalUpdates = { ...updates, passwordHash };
-      delete finalUpdates.password;
+    const { password, ...rest } = updates;
+    let finalUpdates: Partial<AdminUser> = { ...rest };
+    if (password) {
+      const passwordHash = await hashPassword(password);
+      finalUpdates = { ...rest, passwordHash };
     }
     setAdminUsers(prev => prev.map(user => {
       if (user.id === id) {
@@ -1386,7 +1388,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     toast.error("Order deleted!");
   };
 
-  const addCustomer = (customer: Omit<Customer, "id" | "ordersCount" | "totalSpent" | "loyaltyPoints" | "tier">) => {
+  const addCustomer = (customer: Omit<Customer, "id" | "ordersCount" | "totalSpent" | "loyaltyPoints" | "tier" | "createdAt">) => {
     const newCustomer: Customer = {
       ...customer,
       id: Date.now(),
@@ -1394,6 +1396,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       totalSpent: 0,
       loyaltyPoints: 0,
       tier: "Bronze",
+      createdAt: new Date().toISOString(),
     };
     setCustomers((prev) => [...prev, newCustomer]);
     toast.success("Customer added successfully!");

@@ -31,7 +31,8 @@ type OrderStatus = "Pending" | "Processing" | "Shipped" | "Delivered" | "Cancell
 type PaymentStatus = "Paid" | "Unpaid" | "Refunded";
 
 interface OrderItem {
-  id: string;
+  id: number;
+  productId: number;
   name: string;
   quantity: number;
   price: number;

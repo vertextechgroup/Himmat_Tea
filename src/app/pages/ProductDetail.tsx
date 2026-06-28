@@ -189,40 +189,50 @@ export default function ProductDetail() {
 
   async function handleShare(platform: string) {
     trackShare(platform);
-    const currentProductUrl = window.location.href;
+    const currentProductUrl = typeof window !== 'undefined' ? window.location.href : '';
     const shareText = `Check out ${product?.name} from Himmat Tea!`;
     let shareUrl = "";
 
     switch (platform) {
       case "facebook":
         shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentProductUrl)}`;
-        window.open(shareUrl, "_blank", "noopener,noreferrer");
+        if (typeof window !== 'undefined') {
+          window.open(shareUrl, "_blank", "noopener,noreferrer");
+        }
         break;
 
       case "twitter":
         shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(currentProductUrl)}`;
-        window.open(shareUrl, "_blank", "width=600,height=400,noopener,noreferrer");
+        if (typeof window !== 'undefined') {
+          window.open(shareUrl, "_blank", "width=600,height=400,noopener,noreferrer");
+        }
         break;
 
       case "linkedin":
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentProductUrl)}`;
-        window.open(shareUrl, "_blank", "width=600,height=400,noopener,noreferrer");
+        if (typeof window !== 'undefined') {
+          window.open(shareUrl, "_blank", "width=600,height=400,noopener,noreferrer");
+        }
         break;
 
       case "whatsapp":
         shareUrl = `https://wa.me/?text=${encodeURIComponent(shareText + " " + currentProductUrl)}`;
-        window.open(shareUrl, "_blank", "noopener,noreferrer");
+        if (typeof window !== 'undefined') {
+          window.open(shareUrl, "_blank", "noopener,noreferrer");
+        }
         break;
 
       case "copy":
-        await navigator.clipboard.writeText(currentProductUrl);
-        setCopied(true);
-        toast.success("Link copied to clipboard!");
-        setTimeout(() => setCopied(false), 2000);
+        if (typeof navigator !== 'undefined' && typeof navigator.clipboard !== 'undefined') {
+          await navigator.clipboard.writeText(currentProductUrl);
+          setCopied(true);
+          toast.success("Link copied to clipboard!");
+          setTimeout(() => setCopied(false), 2000);
+        }
         break;
 
       case "native":
-        if (navigator.share && product) {
+        if (typeof navigator !== 'undefined' && navigator.share && product) {
           try {
             await navigator.share({
               title: product.name,
@@ -513,7 +523,7 @@ export default function ProductDetail() {
               <div className="mb-4">
                 <p className="text-sm font-semibold text-[#1c1917] mb-3">Share this product</p>
                 <div className="flex flex-wrap gap-2">
-                  {typeof navigator !== 'undefined' && navigator.share && (
+                  {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
                     <button
                       onClick={() => handleShare("native")}
                       className="flex items-center gap-2 px-3 py-2.5 bg-[#2d5a3d] text-white rounded-xl hover:bg-[#234832] transition-colors"

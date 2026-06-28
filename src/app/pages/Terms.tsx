@@ -233,7 +233,7 @@ export default function Terms() {
                     International delivery times and rates vary by region.
                     Please refer to our{" "}
                     <Link
-                      to="/shipping-returns"
+                      href="/shipping-returns"
                       className="text-[#2d5a3d] hover:underline"
                     >
                       Shipping & Returns page
@@ -269,7 +269,7 @@ export default function Terms() {
                 <p className="text-[#78746e] leading-relaxed text-sm mb-3">
                   Our returns and refunds policy is detailed in full on our{" "}
                   <Link
-                    to="/shipping-returns"
+                    href="/shipping-returns"
                     className="text-[#2d5a3d] hover:underline"
                   >
                     Shipping & Returns page
@@ -423,19 +423,19 @@ export default function Terms() {
                 </div>
                 <div className="mt-6 pt-6 border-t border-white/20 flex flex-wrap gap-4 text-xs text-white/60">
                   <Link
-                    to="/privacy-policy"
+                    href="/privacy-policy"
                     className="hover:text-white transition-colors"
                   >
                     Privacy Policy
                   </Link>
                   <Link
-                    to="/shipping-returns"
+                    href="/shipping-returns"
                     className="hover:text-white transition-colors"
                   >
                     Shipping & Returns
                   </Link>
                   <Link
-                    to="/faq"
+                    href="/faq"
                     className="hover:text-white transition-colors"
                   >
                     FAQ

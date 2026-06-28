@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useStore } from "./StoreContext";
 import { setCookie, getCookie, eraseCookie, COOKIE_NAMES } from "@/lib/cookie-utils";
+import { api } from "@/lib/api-client";
 
 interface AdminUser {
   id: number;
@@ -158,17 +159,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Admin login
   const login = async (username: string, password: string): Promise<boolean> => {
-    const user = await verifyAdminCredentials(username, password);
-    if (user) {
-      clearCustomerCookies();
-      setIsLoggedIn(true);
-      setCurrentUser(user);
-      setUserType("admin");
-      if (typeof window !== "undefined") {
-        const sessionToken = btoa(JSON.stringify({ userId: user.id, timestamp: Date.now() }));
-        setCookie(COOKIE_NAMES.SESSION_TOKEN, sessionToken, 4);
+    try {
+      const response = await api.post('/auth/login', { username, password });
+      if (response.success && response.user) {
+        clearCustomerCookies();
+        setIsLoggedIn(true);
+        setCurrentUser(response.user);
+        setUserType("admin");
+        if (typeof window !== "undefined") {
+          const sessionToken = btoa(JSON.stringify({ userId: response.user.id, timestamp: Date.now() }));
+          setCookie(COOKIE_NAMES.SESSION_TOKEN, sessionToken, 4);
+        }
+        return true;
       }
-      return true;
+    } catch (error) {
+      console.error('Login failed:', error);
     }
     return false;
   };

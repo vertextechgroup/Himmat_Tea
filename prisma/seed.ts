@@ -15,7 +15,7 @@ async function main() {
   await prisma.collection.deleteMany()
   await prisma.product.deleteMany()
   await prisma.blogPost.deleteMany()
-  await prisma.faq.deleteMany()
+  await prisma.fAQ.deleteMany()
   await prisma.brewingGuide.deleteMany()
   await prisma.coupon.deleteMany()
   await prisma.adminUser.deleteMany()
@@ -168,7 +168,7 @@ async function main() {
   ]
 
   for (const faq of faqs) {
-    await prisma.faq.create({
+    await prisma.fAQ.create({
       data: faq
     })
   }

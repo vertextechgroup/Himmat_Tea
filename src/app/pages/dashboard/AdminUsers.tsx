@@ -39,7 +39,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 export default function AdminUsers() {
   const { adminUsers, addAdminUser, updateAdminUser, deleteAdminUser } = useStore();
-  const { currentUser } = useAuth();
+  const { currentUser, userType } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
@@ -96,7 +96,7 @@ export default function AdminUsers() {
           </h1>
           <p className="text-[#78746e] mt-1">Manage admin accounts and permissions</p>
         </div>
-        {currentUser?.role === "superadmin" && (
+        {userType === "admin" && (currentUser as any)?.role === "superadmin" && (
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-[#2d5a3d] hover:bg-[#244a33] text-white">
@@ -237,7 +237,7 @@ export default function AdminUsers() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  {currentUser?.role === "superadmin" && (
+                  {userType === "admin" && (currentUser as any)?.role === "superadmin" && (
                     <>
                       <Button
                         variant="secondary"

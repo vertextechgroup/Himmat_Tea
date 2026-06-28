@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { mockDb } from '@/lib/mock-data'
+import { prisma } from '@/lib/prisma'
+import { createResponse, createErrorResponse, handleApiError } from '@/lib/api-utils'
 
 interface Params {
   params: Promise<{ id: string }>
@@ -8,15 +9,24 @@ interface Params {
 export async function GET(request: NextRequest, { params }: Params) {
   try {
     const { id } = await params
-    const product = mockDb.getProductById(parseInt(id))
+    const product = await prisma.product.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        productVariants: true,
+        batches: true,
+        reviews: true,
+        collectionItems: { include: { collection: true } },
+        inventoryTransactions: true
+      }
+    })
     
     if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+      return createErrorResponse('Product not found', 404)
     }
     
-    return NextResponse.json(product)
+    return createResponse(product)
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -25,15 +35,21 @@ export async function PUT(request: NextRequest, { params }: Params) {
     const { id } = await params
     const body = await request.json()
     
-    const product = mockDb.updateProduct(parseInt(id), body)
+    const product = await prisma.product.update({
+      where: { id: parseInt(id) },
+      data: body,
+      include: {
+        productVariants: true,
+        batches: true,
+        reviews: true,
+        collectionItems: { include: { collection: true } },
+        inventoryTransactions: true
+      }
+    })
     
-    if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
-    }
-    
-    return NextResponse.json(product)
+    return createResponse(product)
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -41,14 +57,12 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   try {
     const { id } = await params
     
-    const deleted = mockDb.deleteProduct(parseInt(id))
+    await prisma.product.delete({
+      where: { id: parseInt(id) }
+    })
     
-    if (!deleted) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
-    }
-    
-    return NextResponse.json({ message: 'Product deleted successfully' })
+    return createResponse({ message: 'Product deleted successfully' })
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 })
+    return handleApiError(error)
   }
 }

@@ -1,5 +1,10 @@
 import CustomerAccount from "@/app/pages/CustomerAccount";
+import { Suspense } from "react";
 
 export default function AccountPage() {
-  return <CustomerAccount />;
+  return (
+    <Suspense fallback={<div>Loading account...</div>}>
+      <CustomerAccount />
+    </Suspense>
+  );
 }

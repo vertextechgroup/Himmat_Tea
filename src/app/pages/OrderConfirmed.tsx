@@ -148,7 +148,7 @@ export default function OrderConfirmed() {
           {/* ── Action buttons ── */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-14">
             <Link
-              to="/products"
+              href="/products"
               className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#2d5a3d] text-white font-semibold rounded-xl hover:bg-[#234832] transition-colors"
             >
               Continue Shopping
@@ -217,7 +217,7 @@ export default function OrderConfirmed() {
             {suggestedProducts.map((product) => (
               <Link
                 key={product.id}
-                to={`/products/${product.id}`}
+                href={`/products/${product.id}`}
                 className="bg-white rounded-2xl border border-[rgba(28,25,23,0.06)] overflow-hidden group hover:shadow-md transition-shadow"
               >
                 <div className="aspect-square overflow-hidden relative">
