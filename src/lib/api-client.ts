@@ -7,6 +7,7 @@ class ApiClient {
   ): Promise<T> {
     const url = `${API_BASE}${endpoint}`
     const response = await fetch(url, {
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         ...options.headers

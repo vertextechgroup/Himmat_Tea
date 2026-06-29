@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -195,6 +196,29 @@ async function main() {
       storePhone: "+977 9876543210",
       notificationsEnabled: true,
       lowStockThreshold: 20
+    }
+  })
+
+  // Create demo customers (password = customer name for demo mode)
+  const customers = [
+    { name: "Priya Sharma", email: "priya@example.com", phone: "+977 9812345678", address: "Kathmandu, Nepal" },
+    { name: "Ravi Thapa", email: "ravi@example.com", phone: "+977 9823456789", address: "Pokhara, Nepal" },
+    { name: "Anita Gurung", email: "anita@example.com", phone: "+977 9834567890", address: "Lalitpur, Nepal" }
+  ]
+
+  for (const c of customers) {
+    await prisma.customer.create({ data: c })
+  }
+
+  // Create demo admin user (password: admin123)
+  const adminHash = await bcrypt.hash("admin123", 10)
+  await prisma.adminUser.create({
+    data: {
+      username: "admin",
+      email: "admin@himmattea.com",
+      passwordHash: adminHash,
+      role: "admin",
+      isActive: true
     }
   })
 

@@ -1,7 +1,7 @@
 'use client';
 
-import React from "react";
-import { redirect } from "next/navigation";
+import React, { useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
 interface ProtectedRouteProps {
@@ -9,11 +9,32 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, userType, isLoading } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  if (!isLoggedIn) {
-    redirect("/himmat_admin_8526");
+  console.log("ProtectedRoute: isLoading=", isLoading, "isLoggedIn=", isLoggedIn, "userType=", userType, "pathname=", pathname);
+
+  useEffect(() => {
+    if (!isLoading && (!isLoggedIn || userType !== 'admin')) {
+      if (!pathname?.includes('/himmat_admin_8526')) {
+        console.log("ProtectedRoute: Redirecting to login");
+        router.push("/himmat_admin_8526");
+      }
+    }
+  }, [isLoggedIn, userType, isLoading, router, pathname]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl">Checking Authentication...</div>
+      </div>
+    );
   }
 
-  return <>{children}</>;
+  if (isLoggedIn && userType === 'admin') {
+    return <>{children}</>;
+  }
+
+  return null;
 }

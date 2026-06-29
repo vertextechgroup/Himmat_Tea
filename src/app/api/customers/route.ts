@@ -10,7 +10,7 @@ export async function GET() {
       },
       orderBy: { id: 'desc' }
     })
-    return createResponse(customers)
+    return createResponse({ success: true, data: customers })
   } catch (error) {
     return handleApiError(error)
   }
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
         orders: true
       }
     })
-    return createResponse(customer, 201)
+    return createResponse({ success: true, data: customer }, 201)
   } catch (error) {
     return handleApiError(error)
   }

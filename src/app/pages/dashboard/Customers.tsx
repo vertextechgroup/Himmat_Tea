@@ -1,6 +1,7 @@
-import { useState } from "react";
+"use client";
+import { useState, useEffect } from "react";
 import { Plus, Search, Mail, Phone, Edit, Trash2, MoreHorizontal, User, MapPin, ShoppingBag, Gift, PlusCircle, MinusCircle } from "lucide-react";
-import { useStore } from "../../../context/StoreContext";
+import { api } from "@/lib/api-client";
 import {
   Dialog,
   DialogContent,
@@ -35,7 +36,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/ta
 import { Badge } from "../../components/ui/badge";
 
 export default function Customers() {
-  const { customers, addCustomer, updateCustomer, deleteCustomer, getCustomerOrders, addLoyaltyPoints, redeemLoyaltyPoints, loyaltyProgram } = useStore();
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [loyaltyPointsDialog, setLoyaltyPointsDialog] = useState<any>(null);
   const [pointsAction, setPointsAction] = useState<"add" | "redeem">("add");
   const [pointsAmount, setPointsAmount] = useState<number>(0);
@@ -50,27 +52,58 @@ export default function Customers() {
     address: "",
   });
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  
+  const loyaltyProgram = {
+    tiers: [
+      { name: "Bronze", minPoints: 0 },
+      { name: "Silver", minPoints: 500 },
+      { name: "Gold", minPoints: 1500 },
+      { name: "Platinum", minPoints: 3000 }
+    ]
+  };
 
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleSaveCustomer = () => {
-    if (!newCustomer.name || !newCustomer.email) return;
-    if (editingCustomer) {
-      updateCustomer(editingCustomer.id, newCustomer);
-    } else {
-      addCustomer(newCustomer);
+  const fetchCustomers = async () => {
+    try {
+      const response = await api.get('/customers');
+      if (response.success && response.data) {
+        setCustomers(response.data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch customers:", e);
+    } finally {
+      setIsLoading(false);
     }
-    setIsAddDialogOpen(false);
-    setEditingCustomer(null);
-    setNewCustomer({
-      name: "",
-      email: "",
-      phone: "",
-      address: "",
-    });
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  const getCustomerOrders = (customerId: number) => {
+    const customer = customers.find(c => c.id === customerId);
+    return customer?.orders || [];
+  };
+
+  const handleSaveCustomer = async () => {
+    if (!newCustomer.name || !newCustomer.email) return;
+    try {
+      if (editingCustomer) {
+        await api.put(`/customers/${editingCustomer.id}`, newCustomer);
+      } else {
+        await api.post('/customers', newCustomer);
+      }
+      await fetchCustomers();
+      setIsAddDialogOpen(false);
+      setEditingCustomer(null);
+      setNewCustomer({
+        name: "",
+        email: "",
+        phone: "",
+        address: "",
+      });
+    } catch (e) {
+      console.error("Failed to save customer:", e);
+    }
   };
 
   const handleEditCustomer = (customer: any) => {
@@ -83,6 +116,50 @@ export default function Customers() {
     });
     setIsAddDialogOpen(true);
   };
+
+  const handleDeleteCustomer = async (customerId: number) => {
+    try {
+      await api.delete(`/customers/${customerId}`);
+      await fetchCustomers();
+    } catch (e) {
+      console.error("Failed to delete customer:", e);
+    }
+  };
+
+  const handleAddLoyaltyPoints = async (customerId: number, points: number) => {
+    try {
+      const customer = customers.find(c => c.id === customerId);
+      if (customer) {
+        await api.put(`/customers/${customerId}`, {
+          loyaltyPoints: customer.loyaltyPoints + points
+        });
+        await fetchCustomers();
+      }
+      setLoyaltyPointsDialog(null);
+    } catch (e) {
+      console.error("Failed to add loyalty points:", e);
+    }
+  };
+
+  const handleRedeemLoyaltyPoints = async (customerId: number, points: number) => {
+    try {
+      const customer = customers.find(c => c.id === customerId);
+      if (customer) {
+        await api.put(`/customers/${customerId}`, {
+          loyaltyPoints: customer.loyaltyPoints - points
+        });
+        await fetchCustomers();
+      }
+      setLoyaltyPointsDialog(null);
+    } catch (e) {
+      console.error("Failed to redeem loyalty points:", e);
+    }
+  };
+
+  const filteredCustomers = customers.filter(customer =>
+    customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    customer.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -177,99 +254,88 @@ export default function Customers() {
       </div>
 
       {/* Customers Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCustomers.map((customer) => {
-          const customerOrders = getCustomerOrders(customer.id);
-          return (
-            <Card key={customer.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#2d5a3d] to-[#0b7c33] flex items-center justify-center">
-                    <User className="h-7 w-7 text-white" />
-                  </div>
-                  <div className="flex gap-2">
-                    <Badge className={`
-                      ${customer.tier === "Platinum" ? "bg-purple-100 text-purple-700" :
-                        customer.tier === "Gold" ? "bg-yellow-100 text-yellow-700" :
-                        customer.tier === "Silver" ? "bg-gray-200 text-gray-700" :
-                        "bg-amber-100 text-amber-700"}
-                    `}>
-                      {customer.tier}
-                    </Badge>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleEditCustomer(customer)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Customer?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete "{customer.name}"? This will not delete their orders.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteCustomer(customer.id)} className="bg-red-600">
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
-                <CardTitle className="mt-4 text-xl">{customer.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center gap-2 text-sm text-[#78746e]">
-                    <Mail className="h-4 w-4" />
-                    <span>{customer.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-[#78746e]">
-                    <Phone className="h-4 w-4" />
-                    <span>{customer.phone}</span>
-                  </div>
-                  {customer.address && (
-                    <div className="flex items-center gap-2 text-sm text-[#78746e]">
-                      <MapPin className="h-4 w-4" />
-                      <span className="truncate">{customer.address}</span>
+      {isLoading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#2d5a3d] mx-auto mb-4"></div>
+          <p className="text-lg font-medium text-[#1c1917]">Loading customers...</p>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCustomers.map((customer) => {
+            // const customerOrders = getCustomerOrders(customer.id);
+            return (
+              <Card key={customer.id} className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#2d5a3d] to-[#0b7c33] flex items-center justify-center">
+                      <User className="h-7 w-7 text-white" />
                     </div>
-                  )}
-                </div>
-
-                <div className="bg-[#f9f7f4] rounded-lg p-4 mb-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Gift className="h-5 w-5 text-[#2d5a3d]" />
-                      <span className="font-semibold text-[#1c1917]">Loyalty Points</span>
-                    </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-2">
+                      <Badge className={`
+                        ${customer.tier === "Platinum" ? "bg-purple-100 text-purple-700" :
+                          customer.tier === "Gold" ? "bg-yellow-100 text-yellow-700" :
+                          customer.tier === "Silver" ? "bg-gray-200 text-gray-700" :
+                          "bg-amber-100 text-amber-700"}
+                      `}>
+                        {customer.tier}
+                      </Badge>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleEditCustomer(customer)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => {
-                              setLoyaltyPointsDialog(customer);
-                              setPointsAction("add");
-                              setPointsAmount(0);
-                              setPointsReason("");
-                            }}
-                          >
-                            <PlusCircle className="h-3.5 w-3.5" />
+                          <Button variant="destructive" size="sm">
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Customer?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete "{customer.name}"? This will not delete their orders.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteCustomer(customer.id)} className="bg-red-600">
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
                       </AlertDialog>
-                      {customer.loyaltyPoints > 0 && (
+                    </div>
+                  </div>
+                  <CardTitle className="mt-4 text-xl">{customer.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center gap-2 text-sm text-[#78746e]">
+                      <Mail className="h-4 w-4" />
+                      <span>{customer.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-[#78746e]">
+                      <Phone className="h-4 w-4" />
+                      <span>{customer.phone}</span>
+                    </div>
+                    {customer.address && (
+                      <div className="flex items-center gap-2 text-sm text-[#78746e]">
+                        <MapPin className="h-4 w-4" />
+                        <span className="truncate">{customer.address}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-[#f9f7f4] rounded-lg p-4 mb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Gift className="h-5 w-5 text-[#2d5a3d]" />
+                        <span className="font-semibold text-[#1c1917]">Loyalty Points</span>
+                      </div>
+                      <div className="flex gap-1">
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
@@ -277,117 +343,135 @@ export default function Customers() {
                               size="sm"
                               onClick={() => {
                                 setLoyaltyPointsDialog(customer);
-                                setPointsAction("redeem");
+                                setPointsAction("add");
                                 setPointsAmount(0);
                                 setPointsReason("");
                               }}
                             >
-                              <MinusCircle className="h-3.5 w-3.5" />
+                              <PlusCircle className="h-3.5 w-3.5" />
                             </Button>
                           </AlertDialogTrigger>
                         </AlertDialog>
-                      )}
+                        {customer.loyaltyPoints > 0 && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                  setLoyaltyPointsDialog(customer);
+                                  setPointsAction("redeem");
+                                  setPointsAmount(0);
+                                  setPointsReason("");
+                                }}
+                              >
+                                <MinusCircle className="h-3.5 w-3.5" />
+                              </Button>
+                            </AlertDialogTrigger>
+                          </AlertDialog>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-2xl font-bold text-[#2d5a3d] mt-2">{customer.loyaltyPoints.toLocaleString()}</p>
+                    <div className="mt-2">
+                      <div className="w-full bg-[#e8f5ed] rounded-full h-2">
+                        <div
+                          className="bg-[#2d5a3d] h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${Math.min(100, (customer.loyaltyPoints / 2000) * 100)}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-[#78746e] mt-1">
+                        {customer.tier === "Platinum" ? "Platinum tier unlocked!" :
+                          `Next tier: ${loyaltyProgram.tiers.find(t => t.minPoints > customer.loyaltyPoints)?.name || "Platinum"}`}
+                      </p>
                     </div>
                   </div>
-                  <p className="text-2xl font-bold text-[#2d5a3d] mt-2">{customer.loyaltyPoints.toLocaleString()}</p>
-                  <div className="mt-2">
-                    <div className="w-full bg-[#e8f5ed] rounded-full h-2">
-                      <div
-                        className="bg-[#2d5a3d] h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min(100, (customer.loyaltyPoints / 2000) * 100)}%` }}
-                      />
+
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#2d5a3d]/5">
+                    <div>
+                      <p className="text-xs text-[#78746e] uppercase tracking-wide mb-1">Orders</p>
+                      <p className="text-xl font-bold text-[#1c1917] flex items-center gap-1">
+                        <ShoppingBag className="h-4 w-4" />
+                        {customer.ordersCount}
+                      </p>
                     </div>
-                    <p className="text-xs text-[#78746e] mt-1">
-                      {customer.tier === "Platinum" ? "Platinum tier unlocked!" :
-                        `Next tier: ${loyaltyProgram.tiers.find(t => t.minPoints > customer.loyaltyPoints)?.name || "Platinum"}`}
-                    </p>
+                    <div className="text-right">
+                      <p className="text-xs text-[#78746e] uppercase tracking-wide mb-1">Total Spent</p>
+                      <p className="text-xl font-bold text-[#2d5a3d]">
+                        ₹{customer.totalSpent.toLocaleString()}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#2d5a3d]/5">
-                  <div>
-                    <p className="text-xs text-[#78746e] uppercase tracking-wide mb-1">Orders</p>
-                    <p className="text-xl font-bold text-[#1c1917] flex items-center gap-1">
-                      <ShoppingBag className="h-4 w-4" />
-                      {customer.ordersCount}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-[#78746e] uppercase tracking-wide mb-1">Total Spent</p>
-                    <p className="text-xl font-bold text-[#2d5a3d]">
-                      ₹{customer.totalSpent.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="secondary"
-                      className="w-full mt-4"
-                      onClick={() => setSelectedCustomer(customer)}
-                    >
-                      View Details
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    {selectedCustomer && (
-                      <>
-                        <DialogHeader>
-                          <DialogTitle className="text-2xl">{selectedCustomer.name}</DialogTitle>
-                          <DialogDescription>Customer details and order history</DialogDescription>
-                        </DialogHeader>
-                        <Tabs defaultValue="info">
-                          <TabsList className="w-full grid grid-cols-2">
-                            <TabsTrigger value="info">Information</TabsTrigger>
-                            <TabsTrigger value="orders">Order History</TabsTrigger>
-                          </TabsList>
-                          <TabsContent value="info" className="space-y-4 pt-4">
-                            <div className="grid gap-3">
-                              <div>
-                                <Label>Email</Label>
-                                <p className="text-[#1c1917]">{selectedCustomer.email}</p>
-                              </div>
-                              <div>
-                                <Label>Phone</Label>
-                                <p className="text-[#1c1917]">{selectedCustomer.phone}</p>
-                              </div>
-                              <div>
-                                <Label>Address</Label>
-                                <p className="text-[#1c1917]">{selectedCustomer.address}</p>
-                              </div>
-                            </div>
-                          </TabsContent>
-                          <TabsContent value="orders" className="space-y-3 pt-4">
-                            {getCustomerOrders(selectedCustomer.id).length === 0 ? (
-                              <p className="text-[#78746e] text-center py-8">No orders yet</p>
-                            ) : (
-                              getCustomerOrders(selectedCustomer.id).map((order: any) => (
-                                <div key={order.id} className="p-4 border border-[#2d5a3d]/10 rounded-xl flex items-center justify-between">
-                                  <div>
-                                    <p className="font-medium text-[#1c1917]">{order.id}</p>
-                                    <p className="text-xs text-[#78746e]">{new Date(order.orderDate).toLocaleDateString()}</p>
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="font-semibold text-[#1c1917]">₹{order.grandTotal.toFixed(2)}</p>
-                                    <Badge className={order.status === "Delivered" ? "bg-[#e8f5ed] text-[#2d5a3d]" : "bg-[#fef3c7] text-[#92400e]"}>
-                                      {order.status}
-                                    </Badge>
-                                  </div>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="secondary"
+                        className="w-full mt-4"
+                        onClick={() => setSelectedCustomer(customer)}
+                      >
+                        View Details
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      {selectedCustomer && (
+                        <>
+                          <DialogHeader>
+                            <DialogTitle className="text-2xl">{selectedCustomer.name}</DialogTitle>
+                            <DialogDescription>Customer details and order history</DialogDescription>
+                          </DialogHeader>
+                          <Tabs defaultValue="info">
+                            <TabsList className="w-full grid grid-cols-2">
+                              <TabsTrigger value="info">Information</TabsTrigger>
+                              <TabsTrigger value="orders">Order History</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="info" className="space-y-4 pt-4">
+                              <div className="grid gap-3">
+                                <div>
+                                  <Label>Email</Label>
+                                  <p className="text-[#1c1917]">{selectedCustomer.email}</p>
                                 </div>
-                              ))
-                            )}
-                          </TabsContent>
-                        </Tabs>
-                      </>
-                    )}
-                  </DialogContent>
-                </Dialog>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                                <div>
+                                  <Label>Phone</Label>
+                                  <p className="text-[#1c1917]">{selectedCustomer.phone}</p>
+                                </div>
+                                <div>
+                                  <Label>Address</Label>
+                                  <p className="text-[#1c1917]">{selectedCustomer.address}</p>
+                                </div>
+                              </div>
+                            </TabsContent>
+                            <TabsContent value="orders" className="space-y-3 pt-4">
+                              {getCustomerOrders(selectedCustomer.id).length === 0 ? (
+                                <p className="text-[#78746e] text-center py-8">No orders yet</p>
+                              ) : (
+                                getCustomerOrders(selectedCustomer.id).map((order: any) => (
+                                  <div key={order.id} className="p-4 border border-[#2d5a3d]/10 rounded-xl flex items-center justify-between">
+                                    <div>
+                                      <p className="font-medium text-[#1c1917]">{order.id}</p>
+                                      <p className="text-xs text-[#78746e]">{new Date(order.orderDate).toLocaleDateString()}</p>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="font-semibold text-[#1c1917]">₹{order.grandTotal.toFixed(2)}</p>
+                                      <Badge className={order.status === "Delivered" ? "bg-[#e8f5ed] text-[#2d5a3d]" : "bg-[#fef3c7] text-[#92400e]"}>
+                                        {order.status}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                            </TabsContent>
+                          </Tabs>
+                        </>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       <AlertDialog open={!!loyaltyPointsDialog} onOpenChange={() => setLoyaltyPointsDialog(null)}>
         <AlertDialogContent>
@@ -433,11 +517,10 @@ export default function Customers() {
               onClick={() => {
                 if (!loyaltyPointsDialog || pointsAmount <= 0) return;
                 if (pointsAction === "add") {
-                  addLoyaltyPoints(loyaltyPointsDialog.id, pointsAmount, pointsReason);
+                  handleAddLoyaltyPoints(loyaltyPointsDialog.id, pointsAmount);
                 } else {
-                  redeemLoyaltyPoints(loyaltyPointsDialog.id, pointsAmount);
+                  handleRedeemLoyaltyPoints(loyaltyPointsDialog.id, pointsAmount);
                 }
-                setLoyaltyPointsDialog(null);
               }}
               disabled={pointsAmount <= 0 || (pointsAction === "redeem" && pointsAmount > (loyaltyPointsDialog?.loyaltyPoints || 0))}
             >

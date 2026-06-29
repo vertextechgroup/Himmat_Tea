@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       return createErrorResponse('Customer not found', 404)
     }
     
-    return createResponse(customer)
+    return createResponse({ success: true, data: customer })
   } catch (error) {
     return handleApiError(error)
   }
@@ -39,7 +39,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
       }
     })
     
-    return createResponse(customer)
+    return createResponse({ success: true, data: customer })
   } catch (error) {
     return handleApiError(error)
   }
@@ -53,7 +53,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
       where: { id: parseInt(id) }
     })
     
-    return createResponse({ message: 'Customer deleted successfully' })
+    return createResponse({ success: true, message: 'Customer deleted successfully' })
   } catch (error) {
     return handleApiError(error)
   }

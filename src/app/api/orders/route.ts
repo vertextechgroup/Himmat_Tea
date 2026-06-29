@@ -1,18 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { createResponse, handleApiError } from '@/lib/api-utils'
+import { createResponse, createErrorResponse, handleApiError } from '@/lib/api-utils'
+import { getCurrentUser } from '@/lib/auth'
 
 export async function GET() {
   try {
-    const orders = await prisma.order.findMany({
-      include: {
-        customer: true,
-        items: true,
-        internalNotes: true
-      },
-      orderBy: { orderDate: 'desc' }
-    })
-    return createResponse(orders)
+    const currentUser = await getCurrentUser()
+
+    if (!currentUser) {
+      return createErrorResponse('Unauthorized', 401)
+    }
+
+    let orders
+    if ('username' in currentUser) {
+      // Admin user - get all orders
+      orders = await prisma.order.findMany({
+        include: {
+          customer: true,
+          items: true
+        },
+        orderBy: { orderDate: 'desc' }
+      })
+    } else {
+      // Customer user - get only their orders
+      orders = await prisma.order.findMany({
+        where: { customerId: currentUser.id },
+        include: {
+          items: true
+        },
+        orderBy: { orderDate: 'desc' }
+      })
+    }
+
+    return createResponse({ success: true, data: orders })
   } catch (error) {
     return handleApiError(error)
   }
@@ -20,8 +40,14 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getCurrentUser()
     const body = await request.json()
-    const { items, customerId, ...orderData } = body
+    const { items, ...orderData } = body
+    
+    let customerId = orderData.customerId
+    if (!customerId && currentUser && !('username' in currentUser)) {
+      customerId = currentUser.id
+    }
     
     const order = await prisma.order.create({
       data: {
@@ -29,21 +55,23 @@ export async function POST(request: NextRequest) {
         customerId: customerId || 1,
         items: {
           create: items.map((item: any) => ({
-            ...item
+            productId: item.productId,
+            name: item.productName || item.name,
+            quantity: item.quantity,
+            price: item.price
           }))
         }
       },
       include: {
         customer: true,
-        items: true,
-        internalNotes: true
+        items: true
       }
     })
     
     // Update customer stats
-    if (customerId) {
+    if (order.customerId) {
       await prisma.customer.update({
-        where: { id: customerId },
+        where: { id: order.customerId },
         data: {
           ordersCount: { increment: 1 },
           totalSpent: { increment: order.grandTotal }
@@ -51,7 +79,7 @@ export async function POST(request: NextRequest) {
       })
     }
     
-    return createResponse(order, 201)
+    return createResponse({ success: true, data: order }, 201)
   } catch (error) {
     return handleApiError(error)
   }

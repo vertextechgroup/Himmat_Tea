@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -64,6 +64,7 @@ model Customer {
   email         String   @unique
   phone         String
   address       String
+  passwordHash  String   @default("")
   ordersCount   Int      @default(0)
   totalSpent    Float    @default(0)
   loyaltyPoints Int      @default(0)

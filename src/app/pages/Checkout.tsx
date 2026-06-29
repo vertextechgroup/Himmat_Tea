@@ -9,6 +9,7 @@ import { ArrowRight, Check, Lock, User } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useStore } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
+import { api } from "@/lib/api-client";
 import Link from "next/link";
 
 const STEPS = [
@@ -327,33 +328,39 @@ export default function Checkout() {
     handleCardInputChange({ ...e, target: { ...e.target, name: "cvv", value: v } });
   };
 
-  function handlePlaceOrder() {
+  async function handlePlaceOrder() {
     if (!validateStep2()) {
       return;
     }
     
-    const tax = cartTotal * (settings.taxRate / 100);
-    addOrder({
-      customerId: Date.now(),
-      customerName: formData.name,
-      customerEmail: formData.email,
-      customerPhone: formData.phone,
-      items: cart.map(item => ({
-        id: Date.now() + Math.random(),
-        productId: parseInt(item.id) || 1,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity
-      })),
-      total: cartTotal,
-      tax: tax,
-      grandTotal: cartTotal + tax,
-      status: "Pending",
-      paymentStatus: paymentMethod === "card" ? "Paid" : "Unpaid",
-      shippingAddress: `${formData.address}, ${formData.city}, ${formData.province}, ${formData.postal}, ${formData.country}`
-    });
-    clearCart();
-    router.push("/order-confirmed");
+    try {
+      const tax = cartTotal * (settings.taxRate / 100);
+      const orderData = {
+        customerId: (currentUser as any)?.id,
+        customerName: formData.name,
+        customerEmail: formData.email,
+        customerPhone: formData.phone,
+        items: cart.map(item => ({
+          productId: parseInt(item.id) || 1,
+          productName: item.name,
+          price: item.price,
+          quantity: item.quantity
+        })),
+        total: cartTotal,
+        tax: tax,
+        grandTotal: cartTotal + tax,
+        status: "Pending",
+        paymentStatus: paymentMethod === "card" ? "Paid" : "Unpaid",
+        shippingAddress: `${formData.address}, ${formData.city}, ${formData.province}, ${formData.postal}, ${formData.country}`
+      };
+      
+      await api.post('/orders', orderData);
+      clearCart();
+      router.push("/order-confirmed");
+    } catch (error) {
+      console.error("Error placing order:", error);
+      alert("Failed to place order. Please try again.");
+    }
   }
 
   const handleContinueToPayment = () => {

@@ -154,9 +154,12 @@ export default function OrderConfirmed() {
               Continue Shopping
               <ArrowRight className="h-5 w-5" />
             </Link>
-            <button className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-[#2d5a3d] text-[#2d5a3d] font-semibold rounded-xl hover:bg-[#2d5a3d] hover:text-white transition-all">
+            <Link
+              href="/account"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-[#2d5a3d] text-[#2d5a3d] font-semibold rounded-xl hover:bg-[#2d5a3d] hover:text-white transition-all"
+            >
               Track Your Order
-            </button>
+            </Link>
           </div>
 
           {/* ── What Happens Next? ── */}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navigation from "@/app/components/Navigation";
@@ -26,19 +26,7 @@ export default function CustomerAuth() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
   
-  const { customerLogin, customerSignup, socialLogin, isLoggedIn, userType } = useAuth();
-  
-  // Redirect if already logged in
-  if (isLoggedIn) {
-    if (userType === 'customer') {
-      router.replace('/account');
-    } else {
-      router.replace('/');
-    }
-    return null;
-  }
-
-  // Form states
+  // Form states - MUST be declared before any early returns
   const [loginForm, setLoginForm] = useState({
     email: '',
     password: ''
@@ -51,8 +39,26 @@ export default function CustomerAuth() {
     password: '',
     address: ''
   });
+  
+  const { customerLogin, customerSignup, socialLogin, isLoggedIn, userType } = useAuth();
+  
+  // Redirect if already logged in - MUST be in useEffect
+  useEffect(() => {
+    if (isLoggedIn) {
+      if (userType === 'customer') {
+        router.replace('/account');
+      } else {
+        router.replace('/');
+      }
+    }
+  }, [isLoggedIn, userType, router]);
+  
+  if (isLoggedIn) {
+    return null;
+  }
 
-  const handleLogin = async (e: React.FormEvent) => {
+
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -71,7 +77,7 @@ export default function CustomerAuth() {
     }
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);

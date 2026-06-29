@@ -55,12 +55,14 @@ type Product = {
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isStockDialogOpen, setIsStockDialogOpen] = useState(false);
   const [selectedStockProduct, setSelectedStockProduct] = useState<Product | null>(null);
+  const [stockSaving, setStockSaving] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -150,6 +152,7 @@ export default function Products() {
     const status = newProduct.stock === 0 ? "Out of Stock" : newProduct.stock <= 30 ? "Low Stock" : "In Stock";
     
     try {
+      setSaving(true);
       if (editingProduct) {
         const response = await fetch(`/api/products/${editingProduct.id}`, {
           method: "PUT",
@@ -182,6 +185,8 @@ export default function Products() {
     } catch (error) {
       console.error("Error saving product", error);
       toast.error(error instanceof Error ? error.message : "Failed to save product");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -206,6 +211,7 @@ export default function Products() {
       return;
     }
     try {
+      setStockSaving(true);
       const newStock = selectedStockProduct.stock + stockAdjustment.quantity;
       const status = newStock === 0 ? "Out of Stock" : newStock <= 30 ? "Low Stock" : "In Stock";
       
@@ -239,6 +245,8 @@ export default function Products() {
     } catch (error) {
       console.error("Error updating stock", error);
       toast.error("Failed to update stock");
+    } finally {
+      setStockSaving(false);
     }
   };
 
@@ -394,12 +402,16 @@ export default function Products() {
                   setIsAddDialogOpen(false);
                   setEditingProduct(null);
                   resetForm();
-                }}>
+                }} disabled={saving}>
                   Cancel
                 </Button>
-                <Button className="bg-[#2d5a3d] hover:bg-[#234832]" onClick={handleSaveProduct}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Product
+                <Button className="bg-[#2d5a3d] hover:bg-[#234832]" onClick={handleSaveProduct} disabled={saving}>
+                  {saving ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  {saving ? "Saving..." : "Save Product"}
                 </Button>
               </div>
             </DialogContent>
@@ -541,15 +553,21 @@ export default function Products() {
                                 setSelectedStockProduct(null);
                                 setStockAdjustment({ quantity: 0, reason: "" });
                               }}
+                              disabled={stockSaving}
                             >
                               Cancel
                             </Button>
                             <Button
                               className="bg-[#2d5a3d] hover:bg-[#234832]"
                               onClick={handleAdjustStock}
+                              disabled={stockSaving}
                             >
-                              <Save className="h-4 w-4 mr-2" />
-                              Save
+                              {stockSaving ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              ) : (
+                                <Save className="h-4 w-4 mr-2" />
+                              )}
+                              {stockSaving ? "Saving..." : "Save"}
                             </Button>
                           </div>
                         </DialogContent>
