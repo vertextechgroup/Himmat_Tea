@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../../components/ui/alert-dialog";
+import { Switch } from "../../components/ui/switch";
 import { ExportButtons, exportToPDF, exportToCSV, printElement } from "../../components/ExportUtils";
 
 type Product = {
@@ -48,6 +49,7 @@ type Product = {
   reorderPoint?: number;
   hasVariants: boolean;
   variantOptions?: any;
+  isBestseller: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -74,6 +76,7 @@ export default function Products() {
     sku: "",
     reorderPoint: 20,
     hasVariants: false,
+    isBestseller: false,
     status: "In Stock"
   });
   const [stockAdjustment, setStockAdjustment] = useState({
@@ -201,6 +204,7 @@ export default function Products() {
       sku: "",
       reorderPoint: 20,
       hasVariants: false,
+      isBestseller: false,
       status: "In Stock"
     });
   };
@@ -262,6 +266,7 @@ export default function Products() {
       sku: product.sku || "",
       reorderPoint: product.reorderPoint || 20,
       hasVariants: product.hasVariants,
+      isBestseller: product.isBestseller,
       status: product.status
     });
     setIsAddDialogOpen(true);
@@ -396,6 +401,14 @@ export default function Products() {
                     placeholder="Product description"
                   />
                 </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="isBestseller">Mark as Bestseller</Label>
+                  <Switch
+                    id="isBestseller"
+                    checked={newProduct.isBestseller}
+                    onCheckedChange={(checked) => setNewProduct({ ...newProduct, isBestseller: checked })}
+                  />
+                </div>
               </div>
               <div className="flex justify-end gap-3">
                 <Button variant="secondary" onClick={() => {
@@ -476,7 +489,14 @@ export default function Products() {
                         )}
                       </div>
                       <div>
-                        <p className="font-medium text-[#1c1917]">{product.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-[#1c1917]">{product.name}</p>
+                          {product.isBestseller && (
+                            <span className="px-2 py-0.5 bg-[#c8a96e] text-[#1c1917] text-xs font-semibold rounded-full">
+                              Bestseller
+                            </span>
+                          )}
+                        </div>
                         {product.description && (
                           <p className="text-xs text-[#78746e] truncate max-w-[200px]">{product.description}</p>
                         )}

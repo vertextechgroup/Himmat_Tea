@@ -1,5 +1,6 @@
 import Navigation from "@/app/components/Navigation";
 import Hero from "@/app/components/Hero";
+import ProductSlider from "@/app/components/ProductSlider";
 import Features from "@/app/components/Features";
 import ProductsSection from "@/app/components/ProductsSection";
 import Testimonials from "@/app/components/Testimonials";
@@ -10,6 +11,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#f9f7f4]">
       <Navigation />
       <Hero />
+      <ProductSlider />
       <Features />
       <ProductsSection />
       <Testimonials />

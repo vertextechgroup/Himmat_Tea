@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -20,6 +20,7 @@ model Product {
   reorderPoint          Int?                   @default(50)
   hasVariants           Boolean                @default(false)
   variantOptions        String?
+  isBestseller          Boolean                @default(false)
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   batches               Batch[]

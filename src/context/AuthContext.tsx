@@ -56,6 +56,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const checkSession = async () => {
     console.log("AuthContext: Checking session...");
+    // First check localStorage
+    if (typeof window !== "undefined") {
+      const savedUser = localStorage.getItem("himmat_auth_user");
+      const savedUserType = localStorage.getItem("himmat_auth_user_type");
+      if (savedUser && savedUserType) {
+        try {
+          const user = JSON.parse(savedUser);
+          setCurrentUser(user);
+          setIsLoggedIn(true);
+          setUserType(savedUserType as "admin" | "customer");
+          console.log("AuthContext: Session restored from localStorage");
+          setIsLoading(false);
+          return;
+        } catch (e) {
+          console.error("AuthContext: Failed to parse saved session");
+        }
+      }
+    }
+    
+    // If no localStorage session, try API (though we don't have proper session handling yet)
     try {
       const response = await api.get('/auth/me');
       console.log("AuthContext: checkSession response:", response);
@@ -68,7 +88,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else {
           setUserType('customer');
         }
-        console.log("AuthContext: Session restored, user type:", 'username' in user ? 'admin' : 'customer');
+        console.log("AuthContext: Session restored from API");
       }
     } catch (e) {
       console.log("AuthContext: No active session found");
@@ -93,6 +113,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setCurrentUser(response.user);
         setIsLoggedIn(true);
         setUserType("admin");
+        // Save to localStorage
+        if (typeof window !== "undefined") {
+          localStorage.setItem("himmat_auth_user", JSON.stringify(response.user));
+          localStorage.setItem("himmat_auth_user_type", "admin");
+        }
         return true;
       }
     } catch (error) {
@@ -109,6 +134,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setCurrentUser(response.user);
         setIsLoggedIn(true);
         setUserType("customer");
+        // Save to localStorage
+        if (typeof window !== "undefined") {
+          localStorage.setItem("himmat_auth_user", JSON.stringify(response.user));
+          localStorage.setItem("himmat_auth_user_type", "customer");
+        }
         return true;
       }
     } catch (error) {
@@ -125,6 +155,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setCurrentUser(response.user);
         setIsLoggedIn(true);
         setUserType("customer");
+        // Save to localStorage
+        if (typeof window !== "undefined") {
+          localStorage.setItem("himmat_auth_user", JSON.stringify(response.user));
+          localStorage.setItem("himmat_auth_user_type", "customer");
+        }
         return true;
       }
     } catch (error) {
@@ -147,6 +182,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoggedIn(false);
     setCurrentUser(null);
     setUserType(null);
+    // Clear localStorage
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("himmat_auth_user");
+      localStorage.removeItem("himmat_auth_user_type");
+    }
   };
 
   return (
