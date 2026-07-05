@@ -187,7 +187,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-xl font-bold text-[#1c1917]" style={{ fontFamily: "'Playfair Display', serif" }}>
-                  Himmat Tea
+                  Godgifted
                 </h1>
                 <p className="text-xs text-[#78746e]">{t("dashboard.adminTitle")}</p>
               </div>
@@ -342,12 +342,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <Avatar className="h-9 w-9 border-2 border-[#2d5a3d]/10">
                     <AvatarImage src="" alt="Admin" />
                     <AvatarFallback className="bg-gradient-to-br from-[#2d5a3d] to-[#0b7c33] text-white font-semibold">
-                      HT
+                      GG
                     </AvatarFallback>
                   </Avatar>
                   <div className="hidden md:block text-left">
                     <p className="text-sm font-medium text-[#1c1917]">Admin</p>
-                    <p className="text-xs text-[#78746e]">admin@himmattea.com</p>
+                    <p className="text-xs text-[#78746e]">admin@godgifted.com</p>
                   </div>
                   <ChevronDown className="h-4 w-4 text-[#78746e] hidden md:block" />
                 </button>

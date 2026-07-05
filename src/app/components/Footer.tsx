@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Instagram, Facebook, Youtube } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
+import { BRAND } from "@/config/brand";
 
 export default function Footer() {
   const { t } = useTranslation();
@@ -12,11 +13,7 @@ export default function Footer() {
 
   const links = {
     [t("footer.shop")]: [
-      { label: t("nav.greenTea"), href: "/products" },
-      { label: t("nav.blackTea"), href: "/products" },
-      { label: t("nav.herbalBlends"), href: "/products" },
-      { label: t("nav.oolongTea"), href: "/products" },
-      { label: t("nav.teaSets"), href: "/products" },
+      ...BRAND.productLines.map(pl => ({ label: pl.name, href: `/${pl.slug}` })),
       { label: t("footer.subscriptions"), href: "/subscribe" },
     ],
     [t("footer.company")]: [
@@ -124,11 +121,11 @@ export default function Footer() {
                 className="text-xl font-semibold"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
-                Himmat Tea
+                {BRAND.companyName}
               </span>
             </Link>
             <p className="text-white/60 text-[15px] leading-relaxed mb-6 max-w-[260px]">
-              {t("footer.tagline")}
+              {BRAND.tagline}
             </p>
 
             <div className="flex gap-3 mb-8">
@@ -152,16 +149,16 @@ export default function Footer() {
               <p>{t("footer.addressLine1")}</p>
               <p>{t("footer.addressLine2")}</p>
               <a
-                href="mailto:hello@himmattea.com"
+                href={`mailto:${BRAND.supportEmail}`}
                 className="block hover:text-[#c8a96e] transition-colors"
               >
-                hello@himmattea.com
+                {BRAND.supportEmail}
               </a>
               <a
-                href="tel:+9771234567"
+                href={`tel:${BRAND.supportPhone}`}
                 className="block hover:text-[#c8a96e] transition-colors"
               >
-                +977 1 234 567
+                {BRAND.supportPhone}
               </a>
             </div>
           </div>

@@ -9,6 +9,7 @@ import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { Search, ShoppingBag, Star, ArrowRight, Heart } from "lucide-react";
 import { toast } from "sonner";
+import { BRAND } from "@/config/brand";
 
 interface Product {
   id: number;
@@ -28,15 +29,13 @@ interface Product {
   productVariants: any[];
   batches: any[];
   reviews: any[];
+  productLine?: string;
+  productLineId?: string;
 }
 
 const filterTabs = [
-  { key: "all", label: "All Teas" },
-  { key: "green", label: "Green" },
-  { key: "black", label: "Black" },
-  { key: "herbal", label: "Herbal" },
-  { key: "oolong", label: "Oolong" },
-  { key: "white", label: "White" },
+  { key: "all", label: "All Products" },
+  ...BRAND.productLines.map(pl => ({ key: pl.slug, label: pl.name })),
 ];
 
 const tagStyles: Record<string, string> = {
@@ -115,7 +114,9 @@ export default function ProductsCatalog() {
 
   const filtered = useMemo(() => {
     let list = allProducts.filter((p) => {
-      const matchFilter = filter === "all" || p.category === filter;
+      const matchFilter = filter === "all" || 
+        p.productLineId === filter || 
+        p.productLine === BRAND.productLines.find(pl => pl.slug === filter)?.name;
       const matchSearch =
         search.trim() === "" ||
         p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -193,11 +194,11 @@ export default function ProductsCatalog() {
                   className="text-[clamp(2rem,4vw,3.5rem)] leading-[1.1] font-semibold text-[#1c1917] mb-3"
                   style={{ fontFamily: "'Playfair Display', serif" }}
                 >
-                  Explore Our Teas
+                  Explore Our Products
                 </h1>
                 <p className="text-[#78746e] text-lg max-w-xl">
-                  Handpicked teas from the finest gardens across the Himalayas
-                  and beyond.
+                  {BRAND.tagline} Handpicked products from trusted partners across
+                  the Himalayas and beyond.
                 </p>
               </div>
               <p className="text-sm text-[#78746e] shrink-0">
@@ -214,22 +215,26 @@ export default function ProductsCatalog() {
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-10">
             {/* Type filter tabs */}
             <div className="flex flex-wrap gap-2">
-              {filterTabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => {
-                    setFilter(tab.key);
-                    setPage(1);
-                  }}
-                  className={`px-5 py-2 rounded-xl text-sm font-medium transition-all ${
-                    filter === tab.key
-                      ? "bg-[#2d5a3d] text-white shadow-sm"
-                      : "bg-white text-[#1c1917] border border-[rgba(28,25,23,0.08)] hover:bg-[#f0ede8]"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+              {filterTabs.map((tab) => {
+                const pl = BRAND.productLines.find(p => p.slug === tab.key);
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => {
+                      setFilter(tab.key);
+                      setPage(1);
+                    }}
+                    className={`px-5 py-2 rounded-xl text-sm font-medium transition-all ${
+                      filter === tab.key
+                        ? "text-white shadow-sm"
+                        : "bg-white text-[#1c1917] border border-[rgba(28,25,23,0.08)] hover:bg-[#f0ede8]"
+                    }`}
+                    style={filter === tab.key && pl ? { backgroundColor: pl.color } : undefined}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Search + Sort */}
@@ -238,7 +243,7 @@ export default function ProductsCatalog() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#78746e]" />
                 <input
                   type="text"
-                  placeholder="Search teas or origin…"
+                  placeholder="Search products or origin…"
                   value={search}
                   onChange={(e) => {
                     setSearch(e.target.value);
@@ -263,12 +268,12 @@ export default function ProductsCatalog() {
           {/* ── Product Grid ── */}
           {paginated.length === 0 ? (
             <div className="text-center py-24 bg-white rounded-2xl border border-[rgba(28,25,23,0.06)]">
-              <p className="text-5xl mb-5">🍃</p>
+              <p className="text-5xl mb-5">🛍️</p>
               <h3
                 className="text-xl font-semibold text-[#1c1917] mb-2"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
-                No teas found for this filter
+                No products found for this filter
               </h3>
               <p className="text-[#78746e] mb-7">
                 Try adjusting your filters or search term.
@@ -369,7 +374,7 @@ export default function ProductsCatalog() {
                 onClick={() => setPage((p) => p + 1)}
                 className="px-10 py-3.5 border-2 border-[#2d5a3d] text-[#2d5a3d] font-semibold rounded-xl hover:bg-[#2d5a3d] hover:text-white transition-all"
               >
-                Load More Teas
+                Load More Products
               </button>
             </div>
           )}
@@ -387,7 +392,7 @@ export default function ProductsCatalog() {
                 Looking for bulk orders?
               </h2>
               <p className="text-white/70 max-w-md leading-relaxed">
-                Partner with Himmat Tea for bulk orders, custom blends, and
+                Partner with {BRAND.companyName} for bulk orders, custom blends, and
                 exclusive pricing for restaurants, hotels, and retailers.
               </p>
             </div>

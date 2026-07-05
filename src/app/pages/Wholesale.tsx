@@ -92,22 +92,34 @@ const steps = [
 
 const pricingRows = [
   {
-    category: "Loose Leaf",
+    category: "Loose Leaf Tea",
     moq: "500 g",
     discount: "20% off RRP",
     badge: "bg-[#f0f9f4] text-[#2d5a3d]",
   },
   {
-    category: "Packaged (retail-ready)",
+    category: "Packaged Tea (retail-ready)",
     moq: "24 units",
     discount: "25% off RRP",
     badge: "bg-[#f0f9f4] text-[#2d5a3d]",
   },
   {
-    category: "Gift Sets",
+    category: "Tea Gift Sets",
     moq: "12 units",
     discount: "30% off RRP",
     badge: "bg-[#2d5a3d]/10 text-[#2d5a3d] font-bold",
+  },
+  {
+    category: "Unpolished Dals",
+    moq: "10 kg",
+    discount: "15% off RRP",
+    badge: "bg-[#fdf6ec] text-[#b8862f]",
+  },
+  {
+    category: "Dal Gift Sets",
+    moq: "8 units",
+    discount: "25% off RRP",
+    badge: "bg-[#b8862f]/10 text-[#b8862f] font-bold",
   },
 ];
 
@@ -157,6 +169,7 @@ export default function Wholesale() {
     email: "",
     phone: "",
     volume: "",
+    productLines: [] as string[],
     message: "",
   });
 
@@ -190,10 +203,10 @@ export default function Wholesale() {
               className="text-[clamp(2rem,4vw,3.5rem)] leading-[1.1] font-semibold text-[#1c1917] mb-6"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              Partner With Himmat Tea
+              Partner With Godgifted
             </h1>
             <p className="text-xl text-[#78746e] max-w-2xl mx-auto mb-10">
-              Supply exceptional Himalayan teas to your customers. We work with
+              Supply exceptional Himalayan teas and dals to your customers. We work with
               cafés, hotels, retailers, and restaurants across 12 countries.
             </p>
 
@@ -216,7 +229,7 @@ export default function Wholesale() {
                 className="inline-flex items-center gap-2 border border-[rgba(28,25,23,0.18)] text-[#1c1917] font-semibold rounded-lg hover:bg-[#f0ede8] transition-colors"
                 style={{ padding: "13px 28px", fontSize: "0.9rem" }}
               >
-                Browse Our Teas
+                Browse Our Products
               </Link>
             </div>
           </div>
@@ -299,7 +312,7 @@ export default function Wholesale() {
                     textTransform: "uppercase",
                   }}
                 >
-                  The Himmat Advantage
+                  The Godgifted Advantage
                 </span>
               </div>
               <h2
@@ -318,8 +331,8 @@ export default function Wholesale() {
               className="text-[#78746e] leading-relaxed"
               style={{ fontSize: "1.0625rem" }}
             >
-              Beyond great tea, we give you the tools, pricing, and personal
-              support to build a tea programme your customers will return for,
+              Beyond great tea and dals, we give you the tools, pricing, and personal
+              support to build a programme your customers will return for,
               again and again.
             </p>
           </div>
@@ -704,10 +717,10 @@ export default function Wholesale() {
                     Prefer to talk?
                   </p>
                   <a
-                    href="mailto:wholesale@himmattea.com"
+                    href="mailto:wholesale@godgifted.com"
                     className="text-[#c8a96e] text-sm font-semibold hover:text-[#d4b876] transition-colors"
                   >
-                    wholesale@himmattea.com
+                    wholesale@godgifted.com
                   </a>
                   <p className="text-white/35 text-sm mt-1">+977 1 234 567</p>
                 </div>
@@ -871,12 +884,51 @@ export default function Wholesale() {
 
                     <div>
                       <label className="block text-xs font-semibold text-[#1c1917] uppercase tracking-wider mb-2">
+                        Product Lines Interested In <span className="text-[#c8a96e]">*</span>
+                      </label>
+                      <div className="flex flex-wrap gap-4 mb-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={form.productLines.includes("himmat-tea")}
+                            onChange={(e) => {
+                              setForm((prev) => ({
+                                ...prev,
+                                productLines: e.target.checked
+                                  ? [...prev.productLines, "himmat-tea"]
+                                  : prev.productLines.filter((l) => l !== "himmat-tea"),
+                              }));
+                            }}
+                            className="w-4 h-4 accent-[#2d5a3d]"
+                          />
+                          <span className="text-sm">Himmat Tea</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={form.productLines.includes("godgifted-dal")}
+                            onChange={(e) => {
+                              setForm((prev) => ({
+                                ...prev,
+                                productLines: e.target.checked
+                                  ? [...prev.productLines, "godgifted-dal"]
+                                  : prev.productLines.filter((l) => l !== "godgifted-dal"),
+                              }));
+                            }}
+                            className="w-4 h-4 accent-[#b8862f]"
+                          />
+                          <span className="text-sm">Godgifted Dal</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[#1c1917] uppercase tracking-wider mb-2">
                         Tell Us About Your Business
                       </label>
                       <textarea
                         value={form.message}
                         onChange={set("message")}
-                        placeholder="Which teas interest you? Any custom packaging needs? Tell us anything that helps us prepare a tailored quote."
+                        placeholder="Which products interest you? Any custom packaging needs? Tell us anything that helps us prepare a tailored quote."
                         rows={4}
                         className={inputClass + " resize-none"}
                       />

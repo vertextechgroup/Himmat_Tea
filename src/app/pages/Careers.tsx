@@ -157,7 +157,7 @@ const jobs: Job[] = [
     level: "Mid-level",
     posted: "June 14, 2026",
     description:
-      "Own our digital channels — from paid social to SEO — and grow the Himmat Tea brand to a global audience of tea enthusiasts and wellness seekers.",
+      "Own our digital channels — from paid social to SEO — and grow the Godgifted brand to a global audience of premium food enthusiasts.",
     responsibilities: [
       "Manage and optimise paid campaigns across Meta, Google, and Pinterest",
       "Develop and execute SEO content strategy with the content team",
@@ -232,7 +232,7 @@ const jobs: Job[] = [
     level: "Mid-level",
     posted: "June 20, 2026",
     description:
-      "Be the voice of Himmat Tea to our customers. Manage support across email and chat, build loyalty initiatives, and use customer insights to improve our product and experience.",
+      "Be the voice of Godgifted to our customers. Manage support across email and chat, build loyalty initiatives, and use customer insights to improve our product and experience.",
     responsibilities: [
       "Handle customer enquiries via email and live chat (Gorgias / Zendesk)",
       "Own subscription management and retention strategy",
@@ -257,11 +257,11 @@ const jobs: Job[] = [
     level: "Mid / Senior",
     posted: "June 22, 2026",
     description:
-      "Shape the visual identity of Himmat Tea across digital and physical touchpoints. From packaging to social content to email templates — bring our brand to life in every pixel.",
+      "Shape the visual identity of Godgifted across digital and physical touchpoints. From packaging to social content to email templates — bring our brand to life in every pixel.",
     responsibilities: [
       "Create compelling visual content for social, email, and web",
       "Design and iterate on packaging concepts with the product team",
-      "Maintain and evolve the Himmat Tea brand guidelines",
+      "Maintain and evolve the Godgifted brand guidelines",
       "Collaborate with marketing on campaign creative",
       "Produce motion graphics for Instagram Reels and product videos",
     ],
@@ -467,7 +467,7 @@ function ApplyDialog({
                 value={form.cover}
                 onChange={set("cover")}
                 rows={4}
-                placeholder="Tell us why you're excited about this role and what makes you a great fit for Himmat Tea..."
+                placeholder="Tell us why you're excited about this role and what makes you a great fit for Godgifted..."
                 className={inputCls + " resize-none"}
               />
             </div>
@@ -646,10 +646,10 @@ function JobCard({ job, onApply }: { job: Job; onApply: (job: Job) => void }) {
             <span className="text-xs text-[#78746e]">
               Questions? Email{" "}
               <a
-                href="mailto:careers@himmattea.com"
+                href="mailto:careers@godgifted.com"
                 className="text-[#2d5a3d] font-medium hover:underline"
               >
-                careers@himmattea.com
+                careers@godgifted.com
               </a>
             </span>
           </div>
@@ -697,12 +697,12 @@ export default function Careers() {
               className="text-[clamp(2rem,4vw,3.5rem)] leading-[1.1] font-semibold text-[#1c1917] mb-6"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              Build the Future of Tea
+              Build the Future of Premium Food
             </h1>
             <p className="text-xl text-[#78746e] max-w-2xl mx-auto mb-10">
               We're a small, passionate team on a mission to connect the world's
-              finest Himalayan teas with the people who love them. Come grow
-              with us.
+              finest Himalayan products with the people who love them. Come grow
+              with us across both Himmat Tea and Godgifted Dal.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
               <a
@@ -717,7 +717,7 @@ export default function Careers() {
                 href="/about"
                 className="inline-flex items-center gap-2 border border-[rgba(28,25,23,0.18)] text-[#1c1917] font-semibold rounded-lg hover:bg-[#f0ede8] transition-colors px-7 py-3.5 text-[0.9rem]"
               >
-                About Himmat Tea
+                About Godgifted
               </Link>
             </div>
           </div>
@@ -753,7 +753,7 @@ export default function Careers() {
           <div className="mt-8 rounded-2xl overflow-hidden h-[260px] lg:h-[360px]">
             <img
               src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1400&h=500&fit=crop"
-              alt="Himmat Tea team at work"
+              alt="Godgifted team at work"
               className="w-full h-full object-cover"
             />
           </div>
@@ -864,7 +864,7 @@ export default function Careers() {
               style={{ fontSize: "1.0625rem" }}
             >
               Beyond a competitive salary, here's what comes with being part of
-              the Himmat Tea family.
+              the Godgifted family.
             </p>
           </div>
 
@@ -997,7 +997,7 @@ export default function Careers() {
               </p>
             </div>
             <a
-              href="mailto:careers@himmattea.com"
+              href="mailto:careers@godgifted.com"
               className="shrink-0 inline-flex items-center gap-2 px-6 py-3 border-2 border-[#2d5a3d] text-[#2d5a3d] text-sm font-semibold rounded-lg hover:bg-[#2d5a3d] hover:text-white transition-all duration-200 whitespace-nowrap"
             >
               Send Speculative CV
@@ -1023,7 +1023,7 @@ export default function Careers() {
             />
             <div className="relative z-10">
               <p className="text-xs uppercase tracking-widest text-[#c8a96e] font-medium mb-3">
-                Life at Himmat Tea
+                Life at Godgifted
               </p>
               <h2
                 className="font-semibold text-white leading-[1.1] mb-3"
@@ -1040,10 +1040,10 @@ export default function Careers() {
               </p>
             </div>
             <a
-              href="mailto:careers@himmattea.com"
+              href="mailto:careers@godgifted.com"
               className="relative z-10 shrink-0 inline-flex items-center gap-2 px-8 py-4 bg-[#c8a96e] text-[#1c1917] font-semibold rounded-xl hover:bg-[#b8995e] transition-colors whitespace-nowrap"
             >
-              careers@himmattea.com
+              careers@godgifted.com
               <ArrowRight className="h-4 w-4" />
             </a>
           </div>

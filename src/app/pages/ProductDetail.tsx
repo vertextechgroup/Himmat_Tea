@@ -37,6 +37,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/app/components/ui/tabs";
+import { BRAND } from "@/config/brand";
 
 // ─── Brew guide by tea type ───────────────────────────────────────────────────
 const brewGuideByType: Record<
@@ -190,7 +191,7 @@ export default function ProductDetail() {
   async function handleShare(platform: string) {
     trackShare(platform);
     const currentProductUrl = typeof window !== 'undefined' ? window.location.href : '';
-    const shareText = `Check out ${product?.name} from Himmat Tea!`;
+    const shareText = `Check out ${product?.name} from ${BRAND.companyName}!`;
     let shareUrl = "";
 
     switch (platform) {
@@ -313,7 +314,7 @@ export default function ProductDetail() {
         <Navigation />
         <main className="pt-[180px] pb-24">
           <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center py-20">
-            <p className="text-6xl mb-6">🍃</p>
+            <p className="text-6xl mb-6">🛍️</p>
             <h1
               className="text-3xl font-semibold text-[#1c1917] mb-4"
               style={{ fontFamily: "'Playfair Display', serif" }}
@@ -321,7 +322,7 @@ export default function ProductDetail() {
               Product Not Found
             </h1>
             <p className="text-[#78746e] mb-8">
-              We couldn't find the tea you're looking for.
+              We couldn't find the product you're looking for.
             </p>
             <Link
               href="/products"
@@ -633,10 +634,10 @@ export default function ProductDetail() {
                     {product.description}
                   </p>
                   <p className="text-[#78746e] leading-relaxed text-[15px]">
-                    At Himmat Tea, every batch is sourced directly from
+                    At {BRAND.companyName}, every batch is sourced directly from
                     smallholder farms through fair-trade agreements. Our team
-                    visits each garden before harvest to verify soil health,
-                    picking standards, and processing methods — so you can taste
+                    visits each partner before harvest to verify quality,
+                    sustainability standards, and processing methods — so you can taste
                     the difference a direct relationship makes.
                   </p>
                   <p className="text-[#78746e] leading-relaxed text-[15px]">

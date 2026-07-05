@@ -28,8 +28,22 @@ interface Batch {
   costPrice: number;
 }
 
+interface ProductLine {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  heroImage?: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface Product {
   id: number;
+  productLineId: string;
+  productLine?: ProductLine;
   name: string;
   category: string;
   price: number;
@@ -260,6 +274,10 @@ interface StoreContextType {
   updateAdminUser: (id: number, user: Partial<AdminUser> & { password?: string }) => void;
   deleteAdminUser: (id: number) => void;
   verifyAdminCredentials: (username: string, password: string) => Promise<AdminUser | null>;
+  productLines: ProductLine[];
+  addProductLine: (productLine: Omit<ProductLine, "id" | "createdAt" | "updatedAt">) => void;
+  updateProductLine: (id: string, productLine: Partial<ProductLine>) => void;
+  deleteProductLine: (id: string) => void;
   products: Product[];
   orders: Order[];
   customers: Customer[];
@@ -342,8 +360,33 @@ interface StoreContextType {
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
+const sampleProductLines: ProductLine[] = [
+  {
+    id: "pl-1",
+    slug: "himmat-tea",
+    name: "Himmat Tea",
+    description: "Hand-sourced tea from the Himalayan foothills and beyond.",
+    heroImage: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=800&h=400&fit=crop",
+    isActive: true,
+    sortOrder: 0,
+    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "pl-2",
+    slug: "godgifted-dal",
+    name: "Godgifted Dal",
+    description: "Stone-ground, unpolished pulses sourced directly from farmers.",
+    heroImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop",
+    isActive: true,
+    sortOrder: 1,
+    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
 const sampleProducts: Product[] = [
-  { id: 1, name: "Premium Green Tea", category: "Green Tea", price: 249, stock: 145, status: "In Stock", description: "Fresh organic green tea from Assam", imageUrl: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&h=300&fit=crop", reviewsEnabled: true, sku: "HMT-GRN-001", reorderPoint: 50, hasVariants: true, variantOptions: ["Size", "Packaging"], productVariants: [
+  { id: 1, productLineId: "pl-1", name: "Premium Green Tea", category: "Green Tea", price: 249, stock: 145, status: "In Stock", description: "Fresh organic green tea from Assam", imageUrl: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&h=300&fit=crop", reviewsEnabled: true, sku: "HMT-GRN-001", reorderPoint: 50, hasVariants: true, variantOptions: ["Size", "Packaging"], productVariants: [
     { id: 101, sku: "HMT-GRN-001-100G", variants: [{ id: 1001, name: "Size", value: "100g", priceModifier: 0 }, { id: 1002, name: "Packaging", value: "Standard", priceModifier: 0 }], price: 249, stock: 50 },
     { id: 102, sku: "HMT-GRN-001-250G", variants: [{ id: 1003, name: "Size", value: "250g", priceModifier: 150 }, { id: 1004, name: "Packaging", value: "Premium", priceModifier: 50 }], price: 449, stock: 75 },
     { id: 103, sku: "HMT-GRN-001-500G", variants: [{ id: 1005, name: "Size", value: "500g", priceModifier: 350 }, { id: 1006, name: "Packaging", value: "Premium", priceModifier: 50 }], price: 649, stock: 20 },
@@ -351,18 +394,24 @@ const sampleProducts: Product[] = [
     { id: 1, batchNumber: "BATCH-2024-001", quantity: 100, receivedDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Assam Tea Estates", costPrice: 120 },
     { id: 2, batchNumber: "BATCH-2024-002", quantity: 45, receivedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Darjeeling Farms", costPrice: 115 },
   ] },
-  { id: 2, name: "Classic Black Tea", category: "Black Tea", price: 229, stock: 234, status: "In Stock", description: "Traditional black tea blend", imageUrl: "https://images.unsplash.com/photo-1564890369478-c6b8b91994ed?w=400&h=300&fit=crop", reviewsEnabled: true, sku: "HMT-BLK-001", reorderPoint: 60, hasVariants: false, productVariants: [], variantOptions: [], batches: [
+  { id: 2, productLineId: "pl-1", name: "Classic Black Tea", category: "Black Tea", price: 229, stock: 234, status: "In Stock", description: "Traditional black tea blend", imageUrl: "https://images.unsplash.com/photo-1564890369478-c6b8b91994ed?w=400&h=300&fit=crop", reviewsEnabled: true, sku: "HMT-BLK-001", reorderPoint: 60, hasVariants: false, productVariants: [], variantOptions: [], batches: [
     { id: 3, batchNumber: "BATCH-2024-003", quantity: 150, receivedDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 730 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Nilgiri Plantations", costPrice: 100 },
     { id: 4, batchNumber: "BATCH-2024-004", quantity: 84, receivedDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 730 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Nilgiri Plantations", costPrice: 100 },
   ] },
-  { id: 3, name: "Herbal Collection", category: "Herbal", price: 199, stock: 25, status: "Low Stock", description: "Natural herbal tea mix", imageUrl: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=300&fit=crop", reviewsEnabled: true, sku: "HMT-HRB-001", reorderPoint: 40, hasVariants: false, productVariants: [], variantOptions: [], batches: [
+  { id: 3, productLineId: "pl-1", name: "Herbal Collection", category: "Herbal", price: 199, stock: 25, status: "Low Stock", description: "Natural herbal tea mix", imageUrl: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=300&fit=crop", reviewsEnabled: true, sku: "HMT-HRB-001", reorderPoint: 40, hasVariants: false, productVariants: [], variantOptions: [], batches: [
     { id: 5, batchNumber: "BATCH-2024-005", quantity: 25, receivedDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Ayurveda Farms", costPrice: 85 },
   ] },
-  { id: 4, name: "Tea Ceremony Set", category: "Accessories", price: 899, stock: 12, status: "In Stock", description: "Complete tea ceremony kit", imageUrl: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=400&h=300&fit=crop", reviewsEnabled: false, sku: "HMT-ACC-001", reorderPoint: 10, hasVariants: false, productVariants: [], variantOptions: [], batches: [
+  { id: 4, productLineId: "pl-1", name: "Tea Ceremony Set", category: "Accessories", price: 899, stock: 12, status: "In Stock", description: "Complete tea ceremony kit", imageUrl: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=400&h=300&fit=crop", reviewsEnabled: false, sku: "HMT-ACC-001", reorderPoint: 10, hasVariants: false, productVariants: [], variantOptions: [], batches: [
     { id: 6, batchNumber: "BATCH-2024-006", quantity: 12, receivedDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Ceramic Crafts", costPrice: 450 },
   ] },
-  { id: 5, name: "Masala Chai Mix", category: "Spiced", price: 299, stock: 56, status: "In Stock", description: "Authentic masala chai spice blend", imageUrl: "https://images.unsplash.com/photo-1586374820345-f6339ae67f71?w=400&h=300&fit=crop", reviewsEnabled: true, sku: "HMT-MSL-001", reorderPoint: 35, hasVariants: false, productVariants: [], variantOptions: [], batches: [
+  { id: 5, productLineId: "pl-1", name: "Masala Chai Mix", category: "Spiced", price: 299, stock: 56, status: "In Stock", description: "Authentic masala chai spice blend", imageUrl: "https://images.unsplash.com/photo-1586374820345-f6339ae67f71?w=400&h=300&fit=crop", reviewsEnabled: true, sku: "HMT-MSL-001", reorderPoint: 35, hasVariants: false, productVariants: [], variantOptions: [], batches: [
     { id: 7, batchNumber: "BATCH-2024-007", quantity: 56, receivedDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Spice Traders Co", costPrice: 140 },
+  ] },
+  { id: 6, productLineId: "pl-2", name: "Premium Toor Dal", category: "Toor", price: 189, stock: 200, status: "In Stock", description: "Unpolished, stone-ground toor dal from Terai plains", imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop", reviewsEnabled: true, sku: "GG-DAL-001", reorderPoint: 40, hasVariants: false, productVariants: [], variantOptions: [], batches: [
+    { id: 8, batchNumber: "BATCH-2024-008", quantity: 200, receivedDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Terai Farmer Coop", costPrice: 90 },
+  ] },
+  { id: 7, productLineId: "pl-2", name: "Organic Moong Dal", category: "Moong", price: 219, stock: 150, status: "In Stock", description: "Green moong dal, hand-sorted and unpolished", imageUrl: "https://images.unsplash.com/photo-1598387993441-a360f544a835?w=400&h=300&fit=crop", reviewsEnabled: true, sku: "GG-DAL-002", reorderPoint: 35, hasVariants: false, productVariants: [], variantOptions: [], batches: [
+    { id: 9, batchNumber: "BATCH-2024-009", quantity: 150, receivedDate: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Organic Pulse Farms", costPrice: 105 },
   ] },
 ];
 
@@ -561,8 +610,8 @@ const sampleOrders: Order[] = [
 const defaultSettings = {
   taxRate: 18,
   currency: "₹",
-  storeName: "Himmat Tea",
-  storeEmail: "support@himmattea.com",
+  storeName: "Godgifted",
+  storeEmail: "support@godgifted.com",
   storePhone: "+91 9876543210",
   notificationsEnabled: true,
   lowStockThreshold: 30,
@@ -617,7 +666,7 @@ const sampleAdminUsers: AdminUser[] = [
   {
     id: 1,
     username: "admin",
-    email: "admin@himmattea.com",
+    email: "admin@godgifted.com",
     role: "superadmin",
     isActive: true,
     createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -626,6 +675,7 @@ const sampleAdminUsers: AdminUser[] = [
 ];
 
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [productLines, setProductLines] = useState<ProductLine[]>(sampleProductLines);
   const [products, setProducts] = useState<Product[]>(sampleProducts);
   const [inventoryTransactions, setInventoryTransactions] = useState<InventoryTransaction[]>([]);
   const [orders, setOrders] = useState<Order[]>(sampleOrders);
@@ -646,8 +696,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Initialize from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // Product Lines
+      const savedProductLines = localStorage.getItem("godgifted_product_lines");
+      if (savedProductLines) {
+        try {
+          setProductLines(JSON.parse(savedProductLines));
+        } catch (e) {}
+      }
+      
       // Products
-      const savedProducts = localStorage.getItem("himmat_products");
+      const savedProducts = localStorage.getItem("godgifted_products");
       if (savedProducts) {
         try {
           const parsed = JSON.parse(savedProducts);
@@ -661,7 +719,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // Inventory Transactions
-      const savedInventory = localStorage.getItem("himmat_inventory_transactions");
+      const savedInventory = localStorage.getItem("godgifted_inventory_transactions");
       if (savedInventory) {
         try {
           setInventoryTransactions(JSON.parse(savedInventory));
@@ -669,7 +727,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // Orders
-      const savedOrders = localStorage.getItem("himmat_orders");
+      const savedOrders = localStorage.getItem("godgifted_orders");
       if (savedOrders) {
         try {
           const parsed = JSON.parse(savedOrders);
@@ -685,7 +743,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // Customers
-      const savedCustomers = localStorage.getItem("himmat_customers");
+      const savedCustomers = localStorage.getItem("godgifted_customers");
       if (savedCustomers) {
         try {
           const parsed = JSON.parse(savedCustomers);
@@ -699,7 +757,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // Notifications
-      const savedNotifications = localStorage.getItem("himmat_notifications");
+      const savedNotifications = localStorage.getItem("godgifted_notifications");
       if (savedNotifications) {
         try {
           setNotifications(JSON.parse(savedNotifications));
@@ -707,7 +765,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // Blog Posts
-      const savedBlogPosts = localStorage.getItem("himmat_blog_posts");
+      const savedBlogPosts = localStorage.getItem("godgifted_blog_posts");
       if (savedBlogPosts) {
         try {
           setBlogPosts(JSON.parse(savedBlogPosts));
@@ -715,7 +773,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // Reviews
-      const savedReviews = localStorage.getItem("himmat_reviews");
+      const savedReviews = localStorage.getItem("godgifted_reviews");
       if (savedReviews) {
         try {
           setReviews(JSON.parse(savedReviews));
@@ -723,7 +781,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // Coupons
-      const savedCoupons = localStorage.getItem("himmat_coupons");
+      const savedCoupons = localStorage.getItem("godgifted_coupons");
       if (savedCoupons) {
         try {
           setCoupons(JSON.parse(savedCoupons));
@@ -731,7 +789,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // Collections
-      const savedCollections = localStorage.getItem("himmat_collections");
+      const savedCollections = localStorage.getItem("godgifted_collections");
       if (savedCollections) {
         try {
           setCollections(JSON.parse(savedCollections));
@@ -739,7 +797,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // Brewing Guides
-      const savedBrewingGuides = localStorage.getItem("himmat_brewing_guides");
+      const savedBrewingGuides = localStorage.getItem("godgifted_brewing_guides");
       if (savedBrewingGuides) {
         try {
           setBrewingGuides(JSON.parse(savedBrewingGuides));
@@ -747,7 +805,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // FAQs
-      const savedFaqs = localStorage.getItem("himmat_faqs");
+      const savedFaqs = localStorage.getItem("godgifted_faqs");
       if (savedFaqs) {
         try {
           setFaqs(JSON.parse(savedFaqs));
@@ -755,7 +813,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // About Page
-      const savedAboutPage = localStorage.getItem("himmat_about_page");
+      const savedAboutPage = localStorage.getItem("godgifted_about_page");
       if (savedAboutPage) {
         try {
           setAboutPage(JSON.parse(savedAboutPage));
@@ -763,7 +821,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // Settings
-      const savedSettings = localStorage.getItem("himmat_settings");
+      const savedSettings = localStorage.getItem("godgifted_settings");
       if (savedSettings) {
         try {
           setSettings(JSON.parse(savedSettings));
@@ -771,7 +829,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // Purchase Orders
-      const savedPurchaseOrders = localStorage.getItem("himmat_purchase_orders");
+      const savedPurchaseOrders = localStorage.getItem("godgifted_purchase_orders");
       if (savedPurchaseOrders) {
         try {
           setPurchaseOrders(JSON.parse(savedPurchaseOrders));
@@ -779,7 +837,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       // Admin Users
-      const savedAdminUsers = localStorage.getItem("himmat_admin_users");
+      const savedAdminUsers = localStorage.getItem("godgifted_admin_users");
       if (savedAdminUsers) {
         try {
           const parsed = JSON.parse(savedAdminUsers);
@@ -798,91 +856,97 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem("himmat_products", JSON.stringify(products));
+      localStorage.setItem("godgifted_product_lines", JSON.stringify(productLines));
+    }
+  }, [productLines, isInitialized]);
+  
+  useEffect(() => {
+    if (isInitialized && typeof window !== "undefined") {
+      localStorage.setItem("godgifted_products", JSON.stringify(products));
     }
   }, [products, isInitialized]);
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem("himmat_inventory_transactions", JSON.stringify(inventoryTransactions));
+      localStorage.setItem("godgifted_inventory_transactions", JSON.stringify(inventoryTransactions));
     }
   }, [inventoryTransactions, isInitialized]);
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem("himmat_orders", JSON.stringify(orders));
+      localStorage.setItem("godgifted_orders", JSON.stringify(orders));
     }
   }, [orders, isInitialized]);
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem("himmat_customers", JSON.stringify(customers));
+      localStorage.setItem("godgifted_customers", JSON.stringify(customers));
     }
   }, [customers, isInitialized]);
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem("himmat_notifications", JSON.stringify(notifications));
+      localStorage.setItem("godgifted_notifications", JSON.stringify(notifications));
     }
   }, [notifications, isInitialized]);
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem("himmat_blog_posts", JSON.stringify(blogPosts));
+      localStorage.setItem("godgifted_blog_posts", JSON.stringify(blogPosts));
     }
   }, [blogPosts, isInitialized]);
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem("himmat_reviews", JSON.stringify(reviews));
+      localStorage.setItem("godgifted_reviews", JSON.stringify(reviews));
     }
   }, [reviews, isInitialized]);
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem("himmat_coupons", JSON.stringify(coupons));
+      localStorage.setItem("godgifted_coupons", JSON.stringify(coupons));
     }
   }, [coupons, isInitialized]);
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem("himmat_collections", JSON.stringify(collections));
+      localStorage.setItem("godgifted_collections", JSON.stringify(collections));
     }
   }, [collections, isInitialized]);
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem("himmat_brewing_guides", JSON.stringify(brewingGuides));
+      localStorage.setItem("godgifted_brewing_guides", JSON.stringify(brewingGuides));
     }
   }, [brewingGuides, isInitialized]);
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem("himmat_faqs", JSON.stringify(faqs));
+      localStorage.setItem("godgifted_faqs", JSON.stringify(faqs));
     }
   }, [faqs, isInitialized]);
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem("himmat_about_page", JSON.stringify(aboutPage));
+      localStorage.setItem("godgifted_about_page", JSON.stringify(aboutPage));
     }
   }, [aboutPage, isInitialized]);
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem("himmat_settings", JSON.stringify(settings));
+      localStorage.setItem("godgifted_settings", JSON.stringify(settings));
     }
   }, [settings, isInitialized]);
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem("himmat_purchase_orders", JSON.stringify(purchaseOrders));
+      localStorage.setItem("godgifted_purchase_orders", JSON.stringify(purchaseOrders));
     }
   }, [purchaseOrders, isInitialized]);
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem("himmat_admin_users", JSON.stringify(adminUsers));
+      localStorage.setItem("godgifted_admin_users", JSON.stringify(adminUsers));
     }
   }, [adminUsers, isInitialized]);
 
@@ -1465,6 +1529,32 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setReviews((prev) => prev.filter((review) => review.id !== id));
     toast.error("Review deleted!");
   };
+  
+  // Product Line functions
+  const addProductLine = (productLine: Omit<ProductLine, "id" | "createdAt" | "updatedAt">) => {
+    const newProductLine: ProductLine = {
+      ...productLine,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setProductLines((prev) => [...prev, newProductLine]);
+    toast.success("Product line added successfully!");
+  };
+
+  const updateProductLine = (id: string, updates: Partial<ProductLine>) => {
+    setProductLines((prev) =>
+      prev.map((line) =>
+        line.id === id ? { ...line, ...updates, updatedAt: new Date().toISOString() } : line
+      )
+    );
+    toast.success("Product line updated!");
+  };
+
+  const deleteProductLine = (id: string) => {
+    setProductLines((prev) => prev.filter((line) => line.id !== id));
+    toast.error("Product line deleted!");
+  };
 
   const getProductReviews = (productId: number) => {
     return reviews.filter((review) => review.productId === productId);
@@ -1593,6 +1683,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         updateAdminUser,
         deleteAdminUser,
         verifyAdminCredentials,
+        productLines,
+        addProductLine,
+        updateProductLine,
+        deleteProductLine,
         products,
         orders,
         customers,

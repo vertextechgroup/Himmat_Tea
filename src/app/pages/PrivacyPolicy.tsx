@@ -3,7 +3,7 @@
 import Navigation from "@/app/components/Navigation";
 import Footer from "@/app/components/Footer";
 
-const lastUpdated = "June 2025";
+const lastUpdated = "July 2026";
 
 interface Section {
   id: string;
@@ -71,7 +71,7 @@ export default function PrivacyPolicy() {
             <div className="lg:col-span-3 space-y-10">
               <div className="bg-white rounded-2xl border border-[rgba(28,25,23,0.06)] p-8 lg:p-10">
                 <p className="text-[#444] leading-relaxed">
-                  Himmat Tea ("we", "us", or "our") is committed to protecting
+                  Godgifted ("we", "us", or "our") is committed to protecting
                   your personal information. This Privacy Policy explains what
                   data we collect when you visit our website or make a purchase,
                   how we use it, and what rights you have. By using our website,
@@ -152,7 +152,7 @@ export default function PrivacyPolicy() {
                     "To process and fulfil your orders, including sending order confirmations, shipping updates, and delivery notifications.",
                     "To manage your customer account and maintain your order history.",
                     "To communicate with you in response to enquiries, returns, or support requests.",
-                    "To send you marketing emails about new products, promotions, and brewing guides — only if you have opted in. You can unsubscribe from marketing emails at any time by clicking the unsubscribe link in any email or by emailing hello@himmattea.com.",
+                    "To send you marketing emails about new products, promotions, and brewing guides — only if you have opted in. You can unsubscribe from marketing emails at any time by clicking the unsubscribe link in any email or by emailing support@godgifted.com.",
                     "To improve our website, product offerings, and customer experience through analysis of aggregate usage data.",
                     "To comply with our legal obligations under Nepalese law.",
                   ].map((item, i) => (
@@ -350,10 +350,10 @@ export default function PrivacyPolicy() {
                 <p className="text-[#78746e] text-sm leading-relaxed mt-5">
                   To exercise any of these rights, please contact us at{" "}
                   <a
-                    href="mailto:hello@himmattea.com"
+                    href="mailto:support@godgifted.com"
                     className="text-[#2d5a3d] hover:underline"
                   >
-                    hello@himmattea.com
+                    support@godgifted.com
                   </a>
                   . We will respond within 30 days.
                 </p>
@@ -378,14 +378,14 @@ export default function PrivacyPolicy() {
                   <p>
                     <strong className="text-white">Email:</strong>{" "}
                     <a
-                      href="mailto:hello@himmattea.com"
+                      href="mailto:support@godgifted.com"
                       className="text-[#c8a96e] hover:underline"
                     >
-                      hello@himmattea.com
+                      support@godgifted.com
                     </a>
                   </p>
                   <p>
-                    <strong className="text-white">Address:</strong> Himmat Tea,
+                    <strong className="text-white">Address:</strong> Godgifted,
                     Kathmandu, Nepal
                   </p>
                 </div>

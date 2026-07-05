@@ -4,7 +4,7 @@ import Link from "next/link";
 import Navigation from "@/app/components/Navigation";
 import Footer from "@/app/components/Footer";
 
-const lastUpdated = "June 2025";
+const lastUpdated = "July 2026";
 
 const sections = [
   { id: "acceptance", title: "Acceptance of Terms" },
@@ -70,9 +70,9 @@ export default function Terms() {
               {/* Intro */}
               <div className="bg-white rounded-2xl border border-[rgba(28,25,23,0.06)] p-8 lg:p-10">
                 <p className="text-[#444] leading-relaxed">
-                  These Terms of Service ("Terms") govern your use of the Himmat
-                  Tea website located at himmattea.com and the purchase of
-                  products from Himmat Tea ("we", "us", or "our"). Please read
+                  These Terms of Service ("Terms") govern your use of the Godgifted
+                  website located at godgifted.com and the purchase of
+                  products from Godgifted ("we", "us", or "our"). Please read
                   these Terms carefully before placing an order. By using our
                   website or completing a purchase, you confirm that you have
                   read, understood, and agree to be bound by these Terms.
@@ -91,7 +91,7 @@ export default function Terms() {
                   1. Acceptance of Terms
                 </h2>
                 <p className="text-[#78746e] leading-relaxed text-sm mb-3">
-                  By accessing or using the Himmat Tea website, placing an
+                  By accessing or using the Godgifted website, placing an
                   order, or creating an account, you agree to these Terms in
                   full. If you do not agree with any part of these Terms, you
                   must not use our website or services.
@@ -118,7 +118,7 @@ export default function Terms() {
                 </h2>
                 <div className="space-y-3 text-[#78746e] text-sm leading-relaxed">
                   <p>
-                    All prices on the Himmat Tea website are displayed in
+                    All prices on the Godgifted website are displayed in
                     Nepalese Rupees (Rs. NPR) unless otherwise stated. Prices
                     are inclusive of applicable taxes unless indicated.
                   </p>
@@ -304,10 +304,10 @@ export default function Terms() {
                 </h2>
                 <div className="space-y-3 text-[#78746e] text-sm leading-relaxed">
                   <p>
-                    All content on the Himmat Tea website — including text,
+                    All content on the Godgifted website — including text,
                     photographs, logos, brand names, product descriptions,
                     brewing guides, and design elements — is the intellectual
-                    property of Himmat Tea or its licensors and is protected by
+                    property of Godgifted or its licensors and is protected by
                     applicable copyright and trademark laws.
                   </p>
                   <p>
@@ -317,8 +317,8 @@ export default function Terms() {
                     personal, non-commercial use.
                   </p>
                   <p>
-                    The Himmat Tea name, logo, and related marks are trademarks
-                    of Himmat Tea. You may not use them without our explicit
+                    The Godgifted name, logo, and related marks are trademarks
+                    of Godgifted. You may not use them without our explicit
                     written permission.
                   </p>
                 </div>
@@ -337,7 +337,7 @@ export default function Terms() {
                 </h2>
                 <div className="space-y-3 text-[#78746e] text-sm leading-relaxed">
                   <p>
-                    To the fullest extent permitted by law, Himmat Tea shall not
+                    To the fullest extent permitted by law, Godgifted shall not
                     be liable for any indirect, incidental, special,
                     consequential, or punitive damages arising from your use of
                     our website, the purchase of products, or reliance on any
@@ -383,7 +383,7 @@ export default function Terms() {
                   </p>
                   <p>
                     Any dispute arising from or in connection with these Terms,
-                    or a purchase from Himmat Tea, shall be subject to the
+                    or a purchase from Godgifted, shall be subject to the
                     exclusive jurisdiction of the courts of Nepal. We will,
                     however, always attempt to resolve disputes amicably before
                     resorting to formal legal proceedings.
@@ -410,14 +410,14 @@ export default function Terms() {
                   <p>
                     <strong className="text-white">Email:</strong>{" "}
                     <a
-                      href="mailto:hello@himmattea.com"
+                      href="mailto:support@godgifted.com"
                       className="text-[#c8a96e] hover:underline"
                     >
-                      hello@himmattea.com
+                      support@godgifted.com
                     </a>
                   </p>
                   <p>
-                    <strong className="text-white">Address:</strong> Himmat Tea,
+                    <strong className="text-white">Address:</strong> Godgifted,
                     Kathmandu, Nepal
                   </p>
                 </div>

@@ -1,6 +1,7 @@
 import Navigation from "@/app/components/Navigation";
 import Hero from "@/app/components/Hero";
 import ProductSlider from "@/app/components/ProductSlider";
+import ProductLinesShowcase from "@/app/components/ProductLinesShowcase";
 import Features from "@/app/components/Features";
 import ProductsSection from "@/app/components/ProductsSection";
 import Testimonials from "@/app/components/Testimonials";
@@ -12,6 +13,7 @@ export default function LandingPage() {
       <Navigation />
       <Hero />
       <ProductSlider />
+      <ProductLinesShowcase />
       <Features />
       <ProductsSection />
       <Testimonials />

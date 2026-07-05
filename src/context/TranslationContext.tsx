@@ -20,7 +20,7 @@ const TranslationContext = createContext<TranslationCtx>({
   isLoading: false,
 });
 
-export function TranslationProvider({ children }: { children: ReactNode }) {
+export const TranslationProvider = ({ children }: { children: ReactNode }) => {
   const [lang, setLangState] = useState('en');
   const [translations, setTranslations] = useState<Translations>(en);
   const [isLoading, setIsLoading] = useState(false);

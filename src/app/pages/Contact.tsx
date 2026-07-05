@@ -30,7 +30,7 @@ export default function Contact() {
 
               <div className="space-y-6 mb-12">
                 {[
-                  { icon: Mail, title: "Email", value: "hello@himmattea.com" },
+                  { icon: Mail, title: "Email", value: "support@godgifted.com" },
                   { icon: Phone, title: "Phone", value: "+977 1 234 567" },
                   { icon: MapPin, title: "Address", value: "Kathmandu, Nepal" },
                 ].map((item, i) => (
@@ -110,6 +110,8 @@ export default function Contact() {
                       <option value="">Select a topic</option>
                       <option value="general">General Inquiry</option>
                       <option value="order">Order Support</option>
+                      <option value="himmat-tea">Himmat Tea Inquiry</option>
+                      <option value="godgifted-dal">Godgifted Dal Inquiry</option>
                       <option value="wholesale">Wholesale</option>
                     </select>
                   </div>

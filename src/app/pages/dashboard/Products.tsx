@@ -35,6 +35,7 @@ import {
 } from "../../components/ui/alert-dialog";
 import { Switch } from "../../components/ui/switch";
 import { ExportButtons, exportToPDF, exportToCSV, printElement } from "../../components/ExportUtils";
+import { BRAND } from "../../../config/brand";
 
 type Product = {
   id: number;
@@ -52,6 +53,8 @@ type Product = {
   isBestseller: boolean;
   createdAt: string;
   updatedAt: string;
+  productLine?: string;
+  productLineId?: string;
 };
 
 export default function Products() {
@@ -59,7 +62,7 @@ export default function Products() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedProductLine, setSelectedProductLine] = useState("All");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isStockDialogOpen, setIsStockDialogOpen] = useState(false);
@@ -77,14 +80,16 @@ export default function Products() {
     reorderPoint: 20,
     hasVariants: false,
     isBestseller: false,
-    status: "In Stock"
+    status: "In Stock",
+    productLineId: BRAND.productLines[0]?.slug || "",
+    productLine: BRAND.productLines[0]?.name || ""
   });
   const [stockAdjustment, setStockAdjustment] = useState({
     quantity: 0,
     reason: "",
   });
 
-  const categories = ["All", "green", "black", "herbal", "oolong", "white"];
+  const productLines = ["All", ...BRAND.productLines.map(pl => pl.slug)];
 
   // Fetch products from API
   useEffect(() => {
@@ -106,7 +111,7 @@ export default function Products() {
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    (selectedCategory === "All" || product.category === selectedCategory)
+    (selectedProductLine === "All" || product.productLineId === selectedProductLine || product.productLine === BRAND.productLines.find(pl => pl.slug === selectedProductLine)?.name)
   );
 
   const getStatusStyles = (status: string) => {
@@ -205,7 +210,9 @@ export default function Products() {
       reorderPoint: 20,
       hasVariants: false,
       isBestseller: false,
-      status: "In Stock"
+      status: "In Stock",
+      productLineId: BRAND.productLines[0]?.slug || "",
+      productLine: BRAND.productLines[0]?.name || ""
     });
   };
 
@@ -267,7 +274,9 @@ export default function Products() {
       reorderPoint: product.reorderPoint || 20,
       hasVariants: product.hasVariants,
       isBestseller: product.isBestseller,
-      status: product.status
+      status: product.status,
+      productLineId: product.productLineId || BRAND.productLines[0]?.slug || "",
+      productLine: product.productLine || BRAND.productLines[0]?.name || ""
     });
     setIsAddDialogOpen(true);
   };
@@ -302,7 +311,7 @@ export default function Products() {
           <h1 className="text-3xl font-bold text-[#1c1917]" style={{ fontFamily: "'Playfair Display', serif" }}>
             Products
           </h1>
-          <p className="text-[#78746e] mt-1">Manage your tea products and inventory</p>
+          <p className="text-[#78746e] mt-1">Manage your {BRAND.companyName} products and inventory</p>
         </div>
         <div className="flex items-center gap-3">
           <ExportButtons 
@@ -321,7 +330,7 @@ export default function Products() {
               <DialogHeader>
                 <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
                 <DialogDescription>
-                  {editingProduct ? "Update product details" : "Add a new tea product to your inventory"}
+                  {editingProduct ? "Update product details" : "Add a new product to your inventory"}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
@@ -336,6 +345,25 @@ export default function Products() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
+                    <Label htmlFor="productLine">Product Line</Label>
+                    <Select
+                      value={newProduct.productLineId}
+                      onValueChange={(value) => {
+                        const pl = BRAND.productLines.find(p => p.slug === value);
+                        setNewProduct({ ...newProduct, productLineId: value, productLine: pl?.name || "" });
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select product line" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BRAND.productLines.map((pl) => (
+                          <SelectItem key={pl.slug} value={pl.slug}>{pl.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
                     <Label htmlFor="category">Category</Label>
                     <Select
                       value={newProduct.category}
@@ -345,12 +373,14 @@ export default function Products() {
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        {categories.filter(c => c !== "All").map((cat) => (
+                        {["green", "black", "herbal", "oolong", "white", "toor", "moong", "chana", "masoor", "urad", "gift-hampers", "tea-sets"].map((cat) => (
                           <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="price">Price (Rs.)</Label>
                     <Input
@@ -361,8 +391,6 @@ export default function Products() {
                       placeholder="249"
                     />
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="stock">Stock Quantity</Label>
                     <Input
@@ -373,6 +401,8 @@ export default function Products() {
                       placeholder="100"
                     />
                   </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="sku">SKU</Label>
                     <Input
@@ -380,6 +410,16 @@ export default function Products() {
                       value={newProduct.sku}
                       onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value })}
                       placeholder="TEA-001"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="reorderPoint">Reorder Point</Label>
+                    <Input
+                      id="reorderPoint"
+                      type="number"
+                      value={newProduct.reorderPoint}
+                      onChange={(e) => setNewProduct({ ...newProduct, reorderPoint: Number(e.target.value) })}
+                      placeholder="20"
                     />
                   </div>
                 </div>
@@ -445,16 +485,16 @@ export default function Products() {
           />
         </div>
         <Select
-          value={selectedCategory}
-          onValueChange={setSelectedCategory}
+          value={selectedProductLine}
+          onValueChange={setSelectedProductLine}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Categories" />
+            <SelectValue placeholder="All Product Lines" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="All">All Categories</SelectItem>
-            {categories.filter(c => c !== "All").map((cat) => (
-              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+            <SelectItem value="All">All Product Lines</SelectItem>
+            {BRAND.productLines.map((pl) => (
+              <SelectItem key={pl.slug} value={pl.slug}>{pl.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -467,6 +507,7 @@ export default function Products() {
             <thead>
               <tr className="text-left text-sm text-[#78746e] bg-[#f9f7f4] border-b border-[#2d5a3d]/5">
                 <th className="px-6 py-4 font-medium">Product</th>
+                <th className="px-6 py-4 font-medium">Product Line</th>
                 <th className="px-6 py-4 font-medium">Category</th>
                 <th className="px-6 py-4 font-medium">Price</th>
                 <th className="px-6 py-4 font-medium">Stock</th>
@@ -502,6 +543,9 @@ export default function Products() {
                         )}
                       </div>
                     </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-[#2d5a3d] font-medium">{product.productLine || BRAND.productLines[0]?.name}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-[#78746e]">{product.category}</span>
@@ -627,7 +671,7 @@ export default function Products() {
               ))}
               {filteredProducts.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-[#78746e]">
+                  <td colSpan={7} className="px-6 py-12 text-center text-[#78746e]">
                     No products found
                   </td>
                 </tr>

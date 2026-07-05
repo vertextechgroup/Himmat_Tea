@@ -5,17 +5,18 @@ import Navigation from "@/app/components/Navigation";
 import Footer from "@/app/components/Footer";
 import { useTranslation } from "@/hooks/useTranslation";
 import { ArrowRight, Leaf, Handshake, Sparkles } from "lucide-react";
+import { BRAND } from "@/config/brand";
 
 const milestones = [
   {
     year: "2018",
     title: "Founded in Kathmandu",
-    desc: "Himmat Tea was born with a mission to connect Himalayan farmers directly with global tea lovers.",
+    desc: `${BRAND.companyName} was born with a mission to connect Himalayan farmers directly with global consumers.`,
   },
   {
     year: "2020",
     title: "First Export to Japan",
-    desc: "Our first-flush Ilam green teas reached Tokyo, earning rave reviews from discerning Japanese tea houses.",
+    desc: "Our first-flush Ilam green teas reached Tokyo, earning rave reviews from discerning Japanese customers.",
   },
   {
     year: "2022",
@@ -24,25 +25,25 @@ const milestones = [
   },
   {
     year: "2024",
-    title: "500+ Global Customers",
-    desc: "From London to Los Angeles, over 500 customers now enjoy authentic Himalayan tea at home.",
+    title: "Expanded Product Lines",
+    desc: "Launched Godgifted Dal, extending our commitment to quality and direct trade to pulses and grains.",
   },
 ];
 
 const team = [
   {
     name: "Raj Sharma",
-    role: "Founder & Tea Sommelier",
+    role: "Founder & CEO",
     initials: "RS",
     color: "#2d5a3d",
-    bio: "Raj grew up in the tea gardens of Ilam and has spent 15 years learning the craft from Nepal's finest growers.",
+    bio: "Raj grew up in the tea gardens of Ilam and has spent 15 years building direct relationships with Nepal's finest farmers.",
   },
   {
     name: "Priya Gurung",
     role: "Head of Sourcing",
     initials: "PG",
     color: "#c8a96e",
-    bio: "Priya travels the length of Nepal each season, tasting hundreds of lots to hand-select only the finest teas.",
+    bio: "Priya travels across Nepal each season, selecting only the finest teas, dals, and grains from trusted partners.",
   },
   {
     name: "Aarav Pradhan",
@@ -73,11 +74,11 @@ export default function About() {
               className="text-[clamp(2rem,4vw,3.5rem)] leading-[1.1] font-semibold text-[#1c1917] mb-6"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              From the Hills of Nepal to Your Cup
+              From the Hills of Nepal to Your Table
             </h1>
             <p className="text-xl text-[#78746e] max-w-2xl mx-auto">
               A story of craft, community, and the world's most extraordinary
-              teas.
+              natural products.
             </p>
           </div>
 
@@ -86,28 +87,19 @@ export default function About() {
             <div className="rounded-3xl overflow-hidden aspect-[4/5] lg:aspect-auto lg:h-[560px]">
               <img
                 src="https://images.unsplash.com/photo-1455853828816-0c301a011711?w=800&h=700&fit=crop"
-                alt="Tea garden in Nepal"
+                alt="Farm in Nepal"
                 className="w-full h-full object-cover"
               />
             </div>
             <div>
               <p className="text-lg text-[#444] leading-relaxed mb-6">
-                Himmat Tea was born from a simple mission: to bring the
-                exceptional teas of Nepal directly to tea lovers worldwide,
-                while honoring the farmers who grow them.
+                {BRAND.companyName} was born from a simple mission: to bring exceptional products from Nepal directly to consumers worldwide, while honoring the farmers who grow them.
               </p>
               <p className="text-lg text-[#444] leading-relaxed mb-6">
-                Our journey began in the foothills of the Himalayas, where we
-                met smallholder farmers practicing traditional, organic
-                cultivation passed down through generations. We saw an
-                opportunity — not just a business one, but a human one.
+                Our journey began in the foothills of the Himalayas, where we met smallholder farmers practicing traditional, organic cultivation passed down through generations. We saw an opportunity — not just a business one, but a human one.
               </p>
               <p className="text-lg text-[#444] leading-relaxed">
-                Every tea we offer is carefully selected, ethically sourced, and
-                packaged with care to preserve its unique character and
-                freshness. When you brew a cup of Himmat Tea, you taste the
-                altitude, the soil, and the dedication of the people who grew
-                it.
+                Every product we offer is carefully selected, ethically sourced, and packaged with care to preserve its unique character and freshness.
               </p>
             </div>
           </div>
@@ -123,12 +115,12 @@ export default function About() {
               {
                 icon: <Leaf className="h-6 w-6" />,
                 title: "Organic & Sustainable",
-                desc: "All our teas are grown without synthetic pesticides or fertilizers — good for the earth, better for your cup.",
+                desc: "All our products are grown without synthetic pesticides or fertilizers — good for the earth, better for your family.",
               },
               {
                 icon: <Sparkles className="h-6 w-6" />,
                 title: "Freshness First",
-                desc: "We pack our teas within days of harvest to lock in flavor, aroma, and the vibrant character of the season.",
+                desc: "We pack our products within days of harvest to lock in flavor, aroma, and the vibrant character of the season.",
               },
             ].map((item, i) => (
               <div
@@ -204,7 +196,7 @@ export default function About() {
           <div className="mb-24">
             <div className="text-center mb-14">
               <p className="text-xs uppercase tracking-widest text-[#c8a96e] font-medium mb-4">
-                The People Behind the Tea
+                The People Behind the Products
               </p>
               <h2
                 className="text-[clamp(1.75rem,3vw,2.75rem)] leading-[1.1] font-semibold text-[#1c1917]"
@@ -248,31 +240,30 @@ export default function About() {
           {/* CTA */}
           <div className="bg-[#2d5a3d] rounded-3xl p-10 lg:p-16 text-center">
             <p className="text-xs uppercase tracking-widest text-[#c8a96e] font-medium mb-4">
-              Go Deeper
+              Explore Our Products
             </p>
             <h2
               className="text-[clamp(1.75rem,3vw,2.75rem)] leading-[1.1] font-semibold text-white mb-6"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              Curious About How We Source?
+              Discover Our Product Lines
             </h2>
             <p className="text-white/70 text-lg mb-10 max-w-xl mx-auto">
-              Learn how every tea is selected — from the farms we partner with
-              to the certifications we hold.
+              Explore Himmat Tea and Godgifted Dal — two lines, one commitment to quality and sustainability.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/about/sourcing"
+                href="/himmat-tea"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-[#c8a96e] text-[#1c1917] font-semibold rounded-xl hover:bg-[#b8995e] transition-colors"
               >
-                Our Sourcing Story
+                Shop Himmat Tea
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/contact"
+                href="/godgifted-dal"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors border border-white/20"
               >
-                Get in Touch
+                Shop Godgifted Dal
               </Link>
             </div>
           </div>

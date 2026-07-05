@@ -30,6 +30,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { BRAND } from "@/config/brand";
 
 /* ─────────────────────────────────────────────────────────
    Announcement messages  (auto-rotate every 4 s)
@@ -38,7 +39,7 @@ const ANNOUNCEMENTS = [
   {
     icon: Truck,
     text: "Free shipping on orders over Rs. 3,000 — Use code",
-    code: "TEAHAVEN",
+    code: "GODGIFTED",
     link: "/shipping-returns",
   },
   {
@@ -67,6 +68,7 @@ const SEARCH_PRODUCTS = [
     price: 1850,
     image:
       "https://images.unsplash.com/photo-1514733670139-4d87a1941d55?w=80&h=80&fit=crop",
+    productLine: "Himmat Tea"
   },
   {
     id: "2",
@@ -76,6 +78,7 @@ const SEARCH_PRODUCTS = [
     price: 2200,
     image:
       "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=80&h=80&fit=crop",
+    productLine: "Himmat Tea"
   },
   {
     id: "3",
@@ -85,6 +88,7 @@ const SEARCH_PRODUCTS = [
     price: 1400,
     image:
       "https://images.unsplash.com/photo-1596344084757-b83f2081da8b?w=80&h=80&fit=crop",
+    productLine: "Himmat Tea"
   },
   {
     id: "4",
@@ -94,6 +98,7 @@ const SEARCH_PRODUCTS = [
     price: 2600,
     image:
       "https://images.unsplash.com/photo-1563822249548-9a72b6353cd1?w=80&h=80&fit=crop",
+    productLine: "Himmat Tea"
   },
   {
     id: "5",
@@ -103,6 +108,7 @@ const SEARCH_PRODUCTS = [
     price: 3200,
     image:
       "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=80&h=80&fit=crop",
+    productLine: "Himmat Tea"
   },
   {
     id: "6",
@@ -112,6 +118,7 @@ const SEARCH_PRODUCTS = [
     price: 1200,
     image:
       "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=80&h=80&fit=crop",
+    productLine: "Himmat Tea"
   },
   {
     id: "7",
@@ -121,6 +128,7 @@ const SEARCH_PRODUCTS = [
     price: 950,
     image:
       "https://images.unsplash.com/photo-1593618998160-e34014e67546?w=80&h=80&fit=crop",
+    productLine: "Himmat Tea"
   },
   {
     id: "8",
@@ -130,14 +138,28 @@ const SEARCH_PRODUCTS = [
     price: 1100,
     image:
       "https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?w=80&h=80&fit=crop",
+    productLine: "Himmat Tea"
   },
-];
-
-const QUICK_LINKS = [
-  { icon: Leaf, label: "Green Tea", href: "/products" },
-  { icon: Coffee, label: "Black Tea", href: "/products" },
-  { icon: Flame, label: "Herbal", href: "/products" },
-  { icon: Star, label: "Bestsellers", href: "/products" },
+  {
+    id: "9",
+    name: "Premium Toor Dal",
+    type: "Toor Dal",
+    origin: "Terai, Nepal",
+    price: 189,
+    image:
+      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=80&h=80&fit=crop",
+    productLine: "Godgifted Dal"
+  },
+  {
+    id: "10",
+    name: "Organic Moong Dal",
+    type: "Moong Dal",
+    origin: "Haryana, India",
+    price: 219,
+    image:
+      "https://images.unsplash.com/photo-1598344084757-b83f2081da8b?w=80&h=80&fit=crop",
+    productLine: "Godgifted Dal"
+  },
 ];
 
 export default function Navigation() {
@@ -214,40 +236,8 @@ export default function Navigation() {
   /* Nav links */
   const navLinks = [
     {
-      label: t("nav.products"),
+      label: "Products",
       href: "/products",
-      children: [
-        {
-          label: t("nav.greenTea"),
-          sub: t("nav.greenTeaSub"),
-          href: "/products",
-        },
-        {
-          label: t("nav.blackTea"),
-          sub: t("nav.blackTeaSub"),
-          href: "/products",
-        },
-        {
-          label: t("nav.herbalBlends"),
-          sub: t("nav.herbalBlendsSub"),
-          href: "/products",
-        },
-        {
-          label: t("nav.oolongTea"),
-          sub: t("nav.oolongTeaSub"),
-          href: "/products",
-        },
-        {
-          label: t("nav.whiteTea"),
-          sub: t("nav.whiteTeaSub"),
-          href: "/products",
-        },
-        {
-          label: t("nav.teaSets"),
-          sub: t("nav.teaSetsSub"),
-          href: "/products",
-        },
-      ],
     },
     {
       label: t("nav.collections"),
@@ -409,12 +399,17 @@ export default function Navigation() {
                   opacity="0.25"
                 />
               </svg>
-              <span
-                className="text-[1.15rem] font-semibold tracking-tight text-[#1c1917]"
-                style={{ fontFamily: "'Playfair Display', serif" }}
-              >
-                Himmat Tea
-              </span>
+              <div className="flex flex-col">
+                <span
+                  className="text-[1.15rem] font-semibold tracking-tight text-[#1c1917]"
+                  style={{ fontFamily: "'Playfair Display', serif" }}
+                >
+                  {BRAND.companyName}
+                </span>
+                <span className="text-[10px] text-[#78746e] -mt-1">
+                  Home of Himmat Tea
+                </span>
+              </div>
             </Link>
 
             {/* ── Desktop Nav links ── */}
@@ -721,7 +716,7 @@ export default function Navigation() {
               className="text-[1rem] font-semibold tracking-tight text-[#1c1917]"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              Himmat Tea
+              {BRAND.companyName}
             </span>
           </Link>
           <button
@@ -979,6 +974,10 @@ export default function Navigation() {
                             {product.name}
                           </p>
                           <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[10px] font-semibold text-[#2d5a3d] bg-[#f0f9f4] px-2 py-0.5 rounded-full">
+                              {product.productLine}
+                            </span>
+                            <span className="text-[#d0cbc4] text-xs">·</span>
                             <span className="text-xs text-[#78746e]">
                               {product.type}
                             </span>

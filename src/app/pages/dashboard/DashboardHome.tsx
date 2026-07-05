@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useStore } from "../../../context/StoreContext";
 import { useTranslation } from "../../../hooks/useTranslation";
+import { BRAND } from "../../../config/brand";
 
 // Helper functions to calculate metrics
 const getMonthDate = (monthsAgo: number) => {
@@ -120,7 +121,7 @@ const downloadReport = (orders: any[]) => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `Himmat_Tea_Orders_Report_${new Date().toISOString().split('T')[0]}.csv`;
+  link.download = `${BRAND.companyName.replace(/ /g, '_')}_Orders_Report_${new Date().toISOString().split('T')[0]}.csv`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -511,7 +512,7 @@ export default function DashboardHome() {
               </div>
               <div>
                 <h2 className="text-lg font-semibold">{t("dashboard.home.quickActions")}</h2>
-                <p className="text-sm text-white/80">{t("dashboard.home.manageTeaBusiness")}</p>
+                <p className="text-sm text-white/80">Manage your {BRAND.companyName} business</p>
               </div>
             </div>
             <div className="space-y-3">

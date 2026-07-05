@@ -2,18 +2,13 @@
 
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useTranslation } from "@/hooks/useTranslation";
+import { BRAND } from "@/config/brand";
 
 export default function Hero() {
-  const { t } = useTranslation();
-
   const stats = [
-    { value: t("hero.stat.blendsValue"), label: t("hero.stat.blendsLabel") },
-    { value: t("hero.stat.organicValue"), label: t("hero.stat.organicLabel") },
-    {
-      value: t("hero.stat.countriesValue"),
-      label: t("hero.stat.countriesLabel"),
-    },
+    { value: "2+", label: "Product Lines" },
+    { value: "100%", label: "Traceable" },
+    { value: "100+", label: "Farmers Partnered" },
   ];
 
   return (
@@ -86,7 +81,7 @@ export default function Hero() {
                 textTransform: "uppercase",
               }}
             >
-              {t("hero.badge")}
+              {BRAND.companyName}
             </span>
           </div>
 
@@ -100,7 +95,7 @@ export default function Hero() {
               marginBottom: "0.5rem",
             }}
           >
-            {t("hero.headlinePart1")}
+            Pure, God-gifted goodness
           </h1>
           <h1
             className="text-[#2d5a3d] font-bold tracking-tight"
@@ -111,7 +106,7 @@ export default function Hero() {
               marginBottom: "1.75rem",
             }}
           >
-            {t("hero.headlinePart2")}
+            from Himalayan farms
           </h1>
 
           {/* Thin gold rule — editorial accent under headline */}
@@ -137,14 +132,14 @@ export default function Hero() {
               marginBottom: "2.75rem",
             }}
           >
-            {t("hero.subheadline")}
+            {BRAND.tagline} Discover {BRAND.productLines.map(pl => pl.name).join(' and ')}, sourced directly from trusted farmers.
           </p>
 
           {/* ④ CTAs */}
           <div className="flex flex-wrap items-center gap-5 mb-14">
-            {/* Primary */}
+            {/* Primary 1 */}
             <Link
-              href="/products"
+              href={`/${BRAND.productLines[0].slug}`}
               className="group inline-flex items-center gap-2.5 rounded-lg bg-[#2d5a3d] text-white font-semibold hover:bg-[#244a33] transition-all duration-200"
               style={{
                 fontSize: "0.875rem",
@@ -153,27 +148,23 @@ export default function Hero() {
                   "0 4px 18px rgba(45,90,61,0.22), 0 1px 3px rgba(45,90,61,0.15)",
               }}
             >
-              {t("hero.cta.shop")}
+              Shop {BRAND.productLines[0].name}
               <ArrowRight
                 className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
                 strokeWidth={2.5}
               />
             </Link>
 
-            {/* Secondary — text link style */}
+            {/* Primary 2 */}
             <Link
-              href="/about"
-              className="inline-flex items-center gap-1.5 font-semibold text-[#1a1917] hover:text-[#2d5a3d] transition-colors duration-200"
-              style={{ fontSize: "0.875rem" }}
+              href={`/${BRAND.productLines[1].slug}`}
+              className="group inline-flex items-center gap-2.5 rounded-lg border border-[#2d5a3d] text-[#2d5a3d] font-semibold hover:bg-[#2d5a3d] hover:text-white transition-all duration-200"
+              style={{
+                fontSize: "0.875rem",
+                padding: "12px 26px",
+              }}
             >
-              {t("hero.cta.story")}
-              <span
-                className="text-[#c8a96e] transition-transform duration-200 group-hover:translate-x-0.5"
-                aria-hidden
-                style={{ fontSize: "1rem", lineHeight: 1 }}
-              >
-                →
-              </span>
+              Shop {BRAND.productLines[1].name}
             </Link>
           </div>
 
@@ -244,7 +235,7 @@ export default function Hero() {
         {/* Tea-garden image */}
         <img
           src="/hero-bg.avif"
-          alt="Himalayan tea garden"
+          alt="Himalayan farms"
           className="absolute inset-0 w-full h-full object-cover"
           style={{ objectPosition: "58% center" }}
           loading="eager"
@@ -315,7 +306,7 @@ export default function Hero() {
                 marginBottom: "3px",
               }}
             >
-              Himmat Tea
+              {BRAND.companyName}
             </span>
             <span
               className="text-white font-semibold"
@@ -325,12 +316,12 @@ export default function Hero() {
                 lineHeight: 1.2,
               }}
             >
-              Premium Tea from Nepal
+              From the Himalayas to you
             </span>
           </div>
         </div>
 
-        {/* Harvest season tag — top right */}
+        {/* Season tag — top right */}
         <div
           className="absolute"
           style={{
@@ -353,12 +344,12 @@ export default function Hero() {
               boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
             }}
           >
-            <span style={{ fontSize: "13px", lineHeight: 1 }}>🍃</span>
+            <span style={{ fontSize: "13px", lineHeight: 1 }}>🌾</span>
             <span
               className="text-[#1a1917] font-semibold"
               style={{ fontSize: "12px", letterSpacing: "0.01em" }}
             >
-              Spring Harvest 2026
+              Pure & Traceable
             </span>
           </div>
         </div>
