@@ -5,77 +5,12 @@ import Link from "next/link";
 import { Star, ShoppingBag, ArrowRight } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCart } from "@/context/CartContext";
-
-const products = [
-  {
-    id: 1,
-    name: "Dragon Well Longjing",
-    type: "Green Tea",
-    origin: "Zhejiang, China",
-    description:
-      "Flat sword-shaped leaves with chestnut sweetness and a long, clean finish.",
-    price: 32,
-    per: "50g",
-    rating: 4.9,
-    reviews: 312,
-    tag: "Bestseller",
-    tagStyle: "bg-[#2d5a3d] text-white",
-    image:
-      "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=700&fit=crop",
-  },
-  {
-    id: 2,
-    name: "First Flush Darjeeling",
-    type: "Black Tea",
-    origin: "West Bengal, India",
-    description:
-      "Muscatel notes with a bright, astringent character. The champagne of teas.",
-    price: 38,
-    per: "50g",
-    rating: 4.8,
-    reviews: 218,
-    tag: "Seasonal",
-    tagStyle: "bg-[#c8a96e] text-[#1c1917]",
-    image:
-      "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=600&h=700&fit=crop",
-  },
-  {
-    id: 3,
-    name: "Himalayan Herbal Blend",
-    type: "Herbal",
-    origin: "Nepal",
-    description:
-      "Tulsi, ginger, and lemongrass in a warming, caffeine-free infusion.",
-    price: 24,
-    per: "40g",
-    rating: 4.7,
-    reviews: 189,
-    tag: "New",
-    tagStyle: "bg-[#f0ede8] text-[#1c1917]",
-    image:
-      "https://images.unsplash.com/photo-1596344084757-b83f2081da8b?w=600&h=700&fit=crop",
-  },
-  {
-    id: 4,
-    name: "Wuyi Rock Oolong",
-    type: "Oolong",
-    origin: "Fujian, China",
-    description:
-      "Roasted depth with floral lift. Complex, lingering, and deeply satisfying.",
-    price: 45,
-    per: "50g",
-    rating: 5.0,
-    reviews: 97,
-    tag: "Reserve",
-    tagStyle: "bg-[#1c1917] text-white",
-    image:
-      "https://images.unsplash.com/photo-1563822249548-9a72b6353cd1?w=600&h=700&fit=crop",
-  },
-];
+import { useStore } from "@/context/StoreContext";
 
 export default function ProductsSection() {
   const { t } = useTranslation();
   const { addToCart } = useCart();
+  const { products } = useStore();
   const [activeFilter, setActiveFilter] = useState(t("products.filter.all"));
   const [hoveredId, setHoveredId] = useState<number | null>(null);
 
@@ -91,7 +26,11 @@ export default function ProductsSection() {
   const filtered =
     activeFilter === t("products.filter.all")
       ? products
-      : products.filter((p) => p.type === activeFilter);
+      : products.filter((p) => 
+          p.category.toLowerCase().includes(
+            activeFilter.toLowerCase().replace("tea", "").trim()
+          )
+        );
 
   return (
     <section
@@ -137,7 +76,7 @@ export default function ProductsSection() {
           </div>
         </div>
 
-        {/* Product grid - new horizontal card layout */}
+        {/* Product grid */}
         <div className="grid sm:grid-cols-2 gap-6 mb-12">
           {filtered.map((product) => (
             <div
@@ -153,16 +92,16 @@ export default function ProductsSection() {
                   className="relative overflow-hidden bg-[#f0ede8] block h-full"
                 >
                   <img
-                    src={product.image}
+                    src={product.imageUrl}
                     alt={product.name}
                     className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                   />
                   {/* Tag */}
-                  <span
-                    className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-medium ${product.tagStyle}`}
-                  >
-                    {product.tag}
-                  </span>
+                  {product.isBestseller && (
+                    <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-medium bg-[#2d5a3d] text-white">
+                      Bestseller
+                    </span>
+                  )}
                 </Link>
 
                 {/* Details */}
@@ -171,10 +110,14 @@ export default function ProductsSection() {
                     <div className="flex items-center gap-1 mb-2">
                       <Star className="h-3.5 w-3.5 fill-[#c8a96e] text-[#c8a96e]" />
                       <span className="text-sm font-medium text-[#1c1917]">
-                        {product.rating}
+                        {product.reviews.length ? (
+                          (product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length).toFixed(1)
+                        ) : (
+                          "4.8"
+                        )}
                       </span>
                       <span className="text-xs text-[#78746e]">
-                        ({product.reviews})
+                        ({product.reviews.length || 0})
                       </span>
                     </div>
 
@@ -195,18 +138,18 @@ export default function ProductsSection() {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <span className="text-xl font-bold text-[#1c1917]">
-                          Rs.{product.price}
+                          ₹{product.price.toFixed(0)}
                         </span>
                         <span className="text-xs text-[#78746e] ml-1">
-                          / {product.per}
+                          / 50g
                         </span>
                       </div>
                       <span className="text-xs text-[#2d5a3d] font-semibold bg-[#2d5a3d]/10 px-2 py-1 rounded-full">
-                        {product.type}
+                        {product.category}
                       </span>
                     </div>
 
-                    {/* Add to cart button - always visible */}
+                    {/* Add to cart button */}
                     <button
                       onClick={(e) => {
                         e.preventDefault();
@@ -214,8 +157,8 @@ export default function ProductsSection() {
                           id: String(product.id),
                           name: product.name,
                           price: product.price,
-                          image: product.image,
-                          weight: product.per,
+                          image: product.imageUrl,
+                          weight: "50g",
                         });
                       }}
                       className="cursor-pointer w-full flex items-center justify-center gap-2 py-2.5 bg-[#2d5a3d] text-white text-sm font-medium rounded-lg hover:bg-[#234832] transition-colors"

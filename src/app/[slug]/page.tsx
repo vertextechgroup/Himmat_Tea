@@ -1,5 +1,6 @@
 'use client';
 
+import { use } from 'react';
 import { notFound } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -9,9 +10,10 @@ import Footer from '@/app/components/Footer';
 import { useStore } from '@/context/StoreContext';
 import ProductCard from '@/app/components/ProductCard';
 
-export default function ProductLinePage({ params }: { params: { slug: string } }) {
-  const { products } = useStore();
-  const productLine = BRAND.productLines.find(pl => pl.slug === params.slug);
+export default function ProductLinePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
+  const { products, productLines } = useStore();
+  const productLine = productLines.find(pl => pl.slug === slug);
   
   if (!productLine) {
     notFound();

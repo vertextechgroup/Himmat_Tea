@@ -30,10 +30,34 @@ export async function POST() {
       }
     })
 
-    // Create sample products
-    const sampleProducts = await prisma.product.createMany({
+    // Create product lines first
+    const himmatTea = await prisma.productLine.create({
+      data: {
+        slug: 'himmat-tea',
+        name: 'Himmat Tea',
+        description: 'From the misty hills of Ilam to Darjeeling, discover teas that tell a story of soil, altitude, and generations of craftsmanship.',
+        heroImage: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=800&h=600&fit=crop',
+        isActive: true,
+        sortOrder: 0,
+      }
+    })
+
+    const godgiftedDal = await prisma.productLine.create({
+      data: {
+        slug: 'godgifted-dal',
+        name: 'Godgifted Dal',
+        description: 'Unpolished, nutrient-rich dals that bring authentic flavours to your table.',
+        heroImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop',
+        isActive: true,
+        sortOrder: 1,
+      }
+    })
+
+    // Create sample products, linked to product lines
+    const teaProducts = await prisma.product.createMany({
       data: [
         {
+          productLineId: himmatTea.id,
           name: 'Premium Green Tea',
           category: 'Green Tea',
           price: 249,
@@ -43,9 +67,11 @@ export async function POST() {
           imageUrl: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&h=300&fit=crop',
           sku: 'HMT-GRN-001',
           reorderPoint: 50,
-          hasVariants: true
+          hasVariants: true,
+          isBestseller: true,
         },
         {
+          productLineId: himmatTea.id,
           name: 'Classic Black Tea',
           category: 'Black Tea',
           price: 229,
@@ -55,9 +81,10 @@ export async function POST() {
           imageUrl: 'https://images.unsplash.com/photo-1564890369478-c6b8b91994ed?w=400&h=300&fit=crop',
           sku: 'HMT-BLK-001',
           reorderPoint: 60,
-          hasVariants: false
+          hasVariants: false,
         },
         {
+          productLineId: himmatTea.id,
           name: 'Herbal Collection',
           category: 'Herbal',
           price: 199,
@@ -67,9 +94,10 @@ export async function POST() {
           imageUrl: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=300&fit=crop',
           sku: 'HMT-HRB-001',
           reorderPoint: 40,
-          hasVariants: false
+          hasVariants: false,
         },
         {
+          productLineId: himmatTea.id,
           name: 'Tea Ceremony Set',
           category: 'Accessories',
           price: 899,
@@ -79,9 +107,10 @@ export async function POST() {
           imageUrl: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=400&h=300&fit=crop',
           sku: 'HMT-ACC-001',
           reorderPoint: 10,
-          hasVariants: false
+          hasVariants: false,
         },
         {
+          productLineId: himmatTea.id,
           name: 'Masala Chai Mix',
           category: 'Spiced',
           price: 299,
@@ -91,7 +120,40 @@ export async function POST() {
           imageUrl: 'https://images.unsplash.com/photo-1586374820345-f6339ae67f71?w=400&h=300&fit=crop',
           sku: 'HMT-MSL-001',
           reorderPoint: 35,
-          hasVariants: false
+          hasVariants: false,
+          isBestseller: true,
+        }
+      ]
+    })
+
+    const dalProducts = await prisma.product.createMany({
+      data: [
+        {
+          productLineId: godgiftedDal.id,
+          name: 'Premium Toor Dal',
+          category: 'Toor',
+          price: 189,
+          stock: 200,
+          status: 'In Stock',
+          description: 'Unpolished, stone-ground toor dal from Terai plains',
+          imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
+          sku: 'GG-DAL-001',
+          reorderPoint: 40,
+          hasVariants: false,
+          isBestseller: true,
+        },
+        {
+          productLineId: godgiftedDal.id,
+          name: 'Organic Moong Dal',
+          category: 'Moong',
+          price: 219,
+          stock: 150,
+          status: 'In Stock',
+          description: 'Green moong dal, hand-sorted and unpolished',
+          imageUrl: 'https://images.unsplash.com/photo-1598344084757-b83f2081da8b?w=400&h=300&fit=crop',
+          sku: 'GG-DAL-002',
+          reorderPoint: 35,
+          hasVariants: false,
         }
       ]
     })
@@ -148,7 +210,8 @@ export async function POST() {
 
     return createResponse({
       message: 'Database seeded successfully!',
-      products: sampleProducts.count,
+      productLines: 2,
+      products: teaProducts.count + dalProducts.count,
       customers: sampleCustomers.count
     }, 201)
   } catch (error) {

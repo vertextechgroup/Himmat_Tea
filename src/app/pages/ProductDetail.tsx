@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import Navigation from "@/app/components/Navigation";
@@ -8,6 +8,8 @@ import Footer from "@/app/components/Footer";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api-client";
 import {
   Star,
   ShoppingBag,
@@ -126,6 +128,7 @@ interface Product {
   productVariants: any[];
   batches: any[];
   reviews: any[];
+  isBestseller?: boolean;
 }
 
 export default function ProductDetail() {
@@ -135,44 +138,23 @@ export default function ProductDetail() {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
   const [selectedWeight, setSelectedWeight] = useState("50g");
   const [quantity, setQuantity] = useState(1);
   const [copied, setCopied] = useState(false);
   const [shareAnalytics, setShareAnalytics] = useState<Record<string, number>>({});
 
-  // Fetch product from API
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!id) return;
+  const { data: allProducts = [], isLoading: loading } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const response = await api.get<any>('/products');
+      return response.data || response;
+    }
+  });
 
-      try {
-        // Fetch current product
-        const productRes = await fetch(`/api/products/${id}`);
-        if (!productRes.ok) throw new Error('Product not found');
-        const productData = await productRes.json();
-        setProduct(productData);
-
-        // Fetch related products (all products, then filter)
-        const allProductsRes = await fetch('/api/products');
-        if (allProductsRes.ok) {
-          const allProductsData = await allProductsRes.json();
-          setRelatedProducts(
-            allProductsData.filter((p: Product) => p.id !== parseInt(id)).slice(0, 3)
-          );
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [id]);
+  const productId = parseInt(id as string);
+  const product = allProducts.find((p: any) => p.id === productId) || null;
+  const relatedProducts = allProducts.filter((p: any) => p.id !== productId).slice(0, 3);
 
   // Track share clicks for analytics
   function trackShare(platform: string) {
@@ -253,6 +235,7 @@ export default function ProductDetail() {
     for (let i = 0; i < quantity; i++) {
       addToCart({
         id: product.id.toString(),
+        productId: product.id,
         name: product.name,
         price: Math.round(product.price * weightMultipliers[selectedWeight]),
         image: product.imageUrl,

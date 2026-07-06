@@ -332,6 +332,13 @@ export default function Checkout() {
     if (!validateStep2()) {
       return;
     }
+
+    // Validate all cart items have valid productId
+    const invalidItems = cart.filter(item => !item.productId || isNaN(item.productId));
+    if (invalidItems.length > 0) {
+      alert("One or more items in your cart are invalid. Please remove them and try again.");
+      return;
+    }
     
     try {
       const tax = cartTotal * (settings.taxRate / 100);
@@ -341,7 +348,8 @@ export default function Checkout() {
         customerEmail: formData.email,
         customerPhone: formData.phone,
         items: cart.map(item => ({
-          productId: parseInt(item.id) || 1,
+          productId: item.productId,
+          variantId: item.variantId,
           productName: item.name,
           price: item.price,
           quantity: item.quantity

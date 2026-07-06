@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Plus, Search, Edit, Trash2, MoreHorizontal, X, Save, Package } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -35,6 +35,8 @@ import {
 } from "../../components/ui/alert-dialog";
 import { Switch } from "../../components/ui/switch";
 import { ExportButtons, exportToPDF, exportToCSV, printElement } from "../../components/ExportUtils";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "../../../lib/api-client";
 import { BRAND } from "../../../config/brand";
 
 type Product = {
@@ -54,12 +56,11 @@ type Product = {
   createdAt: string;
   updatedAt: string;
   productLine?: string;
-  productLineId?: string;
+  productLineId: string;
 };
 
 export default function Products() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProductLine, setSelectedProductLine] = useState("All");
@@ -69,6 +70,23 @@ export default function Products() {
   const [selectedStockProduct, setSelectedStockProduct] = useState<Product | null>(null);
   const [stockSaving, setStockSaving] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
+
+  const { data: products = [], isLoading: productsLoading } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const response = await api.get<any>('/products');
+      return response.data || response;
+    }
+  });
+
+  const { data: storeProductLines = [] } = useQuery({
+    queryKey: ['product-lines'],
+    queryFn: async () => {
+      const response = await api.get<any>('/product-lines');
+      return response.data || response;
+    }
+  });
+
   const [newProduct, setNewProduct] = useState({
     name: "",
     category: "green",
@@ -81,38 +99,65 @@ export default function Products() {
     hasVariants: false,
     isBestseller: false,
     status: "In Stock",
-    productLineId: BRAND.productLines[0]?.slug || "",
-    productLine: BRAND.productLines[0]?.name || ""
+    productLineId: storeProductLines[0]?.id || "",
+    productLine: storeProductLines[0]?.name || ""
   });
+
   const [stockAdjustment, setStockAdjustment] = useState({
     quantity: 0,
     reason: "",
   });
 
-  const productLines = ["All", ...BRAND.productLines.map(pl => pl.slug)];
+  const productLines = ["All", ...storeProductLines.filter((pl: any) => pl.isActive).map((pl: any) => pl.id)];
 
-  // Fetch products from API
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      const response = await fetch("/api/products");
-      const data = await response.json();
-      setProducts(data); // The API returns an array directly, not wrapped in { data: ... }
-    } catch (error) {
-      console.error("Failed to fetch products", error);
-      toast.error("Failed to load products");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredProducts = products.filter(product =>
+  const filteredProducts = products.filter((product: any) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    (selectedProductLine === "All" || product.productLineId === selectedProductLine || product.productLine === BRAND.productLines.find(pl => pl.slug === selectedProductLine)?.name)
+    (selectedProductLine === "All" || product.productLineId === selectedProductLine)
   );
+
+  // Add Product Mutation
+  const addProductMutation = useMutation({
+    mutationFn: async (product: any) => {
+      const response = await api.post('/products', product);
+      return response.data || response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success("Product added successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to add product");
+    },
+  });
+
+  // Update Product Mutation
+  const updateProductMutation = useMutation({
+    mutationFn: async ({ id, product }: { id: number; product: any }) => {
+      const response = await api.put(`/products/${id}`, product);
+      return response.data || response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success("Product updated successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to update product");
+    },
+  });
+
+  // Delete Product Mutation
+  const deleteProductMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await api.delete(`/products/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success("Product deleted successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to delete product");
+    },
+  });
 
   const getStatusStyles = (status: string) => {
     switch (status) {
@@ -162,37 +207,28 @@ export default function Products() {
     try {
       setSaving(true);
       if (editingProduct) {
-        const response = await fetch(`/api/products/${editingProduct.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...newProduct, status })
+        await updateProductMutation.mutateAsync({
+          id: editingProduct.id,
+          product: {
+            ...newProduct,
+            status
+          }
         });
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error("API Error updating product:", errorData);
-          throw new Error(errorData.error || "Failed to update product");
-        }
-        toast.success("Product updated successfully!");
       } else {
-        const response = await fetch("/api/products", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...newProduct, status })
+        await addProductMutation.mutateAsync({
+          ...newProduct,
+          status,
+          reviews: [],
+          batches: [],
+          productVariants: [],
+          variantOptions: []
         });
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error("API Error adding product:", errorData);
-          throw new Error(errorData.error || "Failed to add product");
-        }
-        toast.success("Product added successfully!");
       }
-      await fetchProducts(); // Refresh the list
       setIsAddDialogOpen(false);
       setEditingProduct(null);
       resetForm();
     } catch (error) {
       console.error("Error saving product", error);
-      toast.error(error instanceof Error ? error.message : "Failed to save product");
     } finally {
       setSaving(false);
     }
@@ -211,8 +247,8 @@ export default function Products() {
       hasVariants: false,
       isBestseller: false,
       status: "In Stock",
-      productLineId: BRAND.productLines[0]?.slug || "",
-      productLine: BRAND.productLines[0]?.name || ""
+      productLineId: storeProductLines[0]?.id || "",
+      productLine: storeProductLines[0]?.name || ""
     });
   };
 
@@ -226,36 +262,20 @@ export default function Products() {
       const newStock = selectedStockProduct.stock + stockAdjustment.quantity;
       const status = newStock === 0 ? "Out of Stock" : newStock <= 30 ? "Low Stock" : "In Stock";
       
-      const response = await fetch(`/api/products/${selectedStockProduct.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stock: newStock, status })
+      await updateProductMutation.mutateAsync({
+        id: selectedStockProduct.id,
+        product: {
+          ...selectedStockProduct,
+          stock: newStock,
+          status
+        }
       });
-      if (!response.ok) throw new Error("Failed to update stock");
       
-      // Also create an inventory transaction!
-      await fetch("/api/inventory/transactions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId: selectedStockProduct.id,
-          productName: selectedStockProduct.name,
-          type: stockAdjustment.quantity > 0 ? "IN" : "OUT",
-          quantity: Math.abs(stockAdjustment.quantity),
-          previousStock: selectedStockProduct.stock,
-          newStock,
-          reason: stockAdjustment.reason,
-        })
-      });
-
-      toast.success("Stock updated successfully!");
-      await fetchProducts();
       setIsStockDialogOpen(false);
       setSelectedStockProduct(null);
       setStockAdjustment({ quantity: 0, reason: "" });
     } catch (error) {
       console.error("Error updating stock", error);
-      toast.error("Failed to update stock");
     } finally {
       setStockSaving(false);
     }
@@ -275,33 +295,19 @@ export default function Products() {
       hasVariants: product.hasVariants,
       isBestseller: product.isBestseller,
       status: product.status,
-      productLineId: product.productLineId || BRAND.productLines[0]?.slug || "",
-      productLine: product.productLine || BRAND.productLines[0]?.name || ""
+      productLineId: product.productLineId || storeProductLines[0]?.id || "",
+      productLine: product.productLine || storeProductLines.find((pl: any) => pl.id === product.productLineId)?.name || storeProductLines[0]?.name || ""
     });
     setIsAddDialogOpen(true);
   };
 
   const handleDeleteProduct = async (id: number) => {
     try {
-      const response = await fetch(`/api/products/${id}`, {
-        method: "DELETE"
-      });
-      if (!response.ok) throw new Error("Failed to delete product");
-      toast.success("Product deleted successfully!");
-      await fetchProducts();
+      await deleteProductMutation.mutateAsync(id);
     } catch (error) {
       console.error("Error deleting product", error);
-      toast.error("Failed to delete product");
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-[#78746e]">Loading products...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -349,7 +355,7 @@ export default function Products() {
                     <Select
                       value={newProduct.productLineId}
                       onValueChange={(value) => {
-                        const pl = BRAND.productLines.find(p => p.slug === value);
+                        const pl = storeProductLines.find(p => p.id === value);
                         setNewProduct({ ...newProduct, productLineId: value, productLine: pl?.name || "" });
                       }}
                     >
@@ -357,8 +363,8 @@ export default function Products() {
                         <SelectValue placeholder="Select product line" />
                       </SelectTrigger>
                       <SelectContent>
-                        {BRAND.productLines.map((pl) => (
-                          <SelectItem key={pl.slug} value={pl.slug}>{pl.name}</SelectItem>
+                        {storeProductLines.filter(pl => pl.isActive).map((pl) => (
+                          <SelectItem key={pl.id} value={pl.id}>{pl.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -493,8 +499,8 @@ export default function Products() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="All">All Product Lines</SelectItem>
-            {BRAND.productLines.map((pl) => (
-              <SelectItem key={pl.slug} value={pl.slug}>{pl.name}</SelectItem>
+            {storeProductLines.filter(pl => pl.isActive).map((pl) => (
+              <SelectItem key={pl.id} value={pl.id}>{pl.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -545,7 +551,7 @@ export default function Products() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-[#2d5a3d] font-medium">{product.productLine || BRAND.productLines[0]?.name}</span>
+                    <span className="text-[#2d5a3d] font-medium">{product.productLine || storeProductLines[0]?.name}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-[#78746e]">{product.category}</span>

@@ -96,6 +96,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       icon: Package 
     },
     { 
+      name: "Product Lines", 
+      href: "/himmat_admin_8526/dashboard/product-lines", 
+      icon: LayoutDashboard 
+    },
+    { 
       name: t("dashboard.nav.orders"), 
       href: "/himmat_admin_8526/dashboard/orders", 
       icon: ShoppingBag,

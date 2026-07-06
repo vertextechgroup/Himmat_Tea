@@ -33,7 +33,19 @@ interface ProductLine {
   slug: string;
   name: string;
   description: string;
+  heroHeadline?: string;
   heroImage?: string;
+  color: string;
+  categories?: Array<{
+    id: string;
+    name: string;
+    description: string;
+    image: string;
+  }>;
+  ctaTitle?: string;
+  ctaDescription?: string;
+  ctaLinkText?: string;
+  ctaLink?: string;
   isActive: boolean;
   sortOrder: number;
   createdAt: string;
@@ -58,6 +70,7 @@ interface Product {
   hasVariants: boolean;
   productVariants: ProductVariant[];
   variantOptions: string[];
+  isBestseller: boolean;
 }
 
 interface Customer {
@@ -365,8 +378,22 @@ const sampleProductLines: ProductLine[] = [
     id: "pl-1",
     slug: "himmat-tea",
     name: "Himmat Tea",
-    description: "Hand-sourced tea from the Himalayan foothills and beyond.",
-    heroImage: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=800&h=400&fit=crop",
+    description: "From the misty hills of Ilam to Darjeeling, discover teas that tell a story of soil, altitude, and generations of craftsmanship.",
+    heroHeadline: "Hand-sourced tea from the Himalayan foothills",
+    heroImage: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=800&h=600&fit=crop",
+    color: "#2d5a3d",
+    categories: [
+      { id: "green", name: "Green Tea", description: "Fresh & delicate", image: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&h=300&fit=crop" },
+      { id: "black", name: "Black Tea", description: "Bold & robust", image: "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=400&h=300&fit=crop" },
+      { id: "oolong", name: "Oolong Tea", description: "Complex & fragrant", image: "https://images.unsplash.com/photo-1563822249548-9a72b6353cd1?w=400&h=300&fit=crop" },
+      { id: "white", name: "White Tea", description: "Subtle & elegant", image: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=400&h=300&fit=crop" },
+      { id: "herbal", name: "Herbal Infusions", description: "Caffeine-free & soothing", image: "https://images.unsplash.com/photo-1596344084757-b83f2081da8b?w=400&h=300&fit=crop" },
+      { id: "tea-sets", name: "Tea Sets", description: "The perfect gift", image: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=400&h=300&fit=crop" },
+    ],
+    ctaTitle: "New to tea?",
+    ctaDescription: "Learn how to brew the perfect cup with our detailed brewing guides.",
+    ctaLinkText: "View brewing guides",
+    ctaLink: "/brewing-guides",
     isActive: true,
     sortOrder: 0,
     createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -376,13 +403,33 @@ const sampleProductLines: ProductLine[] = [
     id: "pl-2",
     slug: "godgifted-dal",
     name: "Godgifted Dal",
-    description: "Stone-ground, unpolished pulses sourced directly from farmers.",
-    heroImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop",
+    description: "Unpolished, nutrient-rich dals that bring authentic flavours to your table.",
+    heroHeadline: "Stone-ground pulses from the Terai plains",
+    heroImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop",
+    color: "#b8862f",
+    categories: [
+      { id: "toor", name: "Toor Dal", description: "Protein-rich & versatile", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop" },
+      { id: "moong", name: "Moong Dal", description: "Light & easy to digest", image: "https://images.unsplash.com/photo-1598344084757-b83f2081da8b?w=400&h=300&fit=crop" },
+      { id: "chana", name: "Chana Dal", description: "Nutty & wholesome", image: "https://images.unsplash.com/photo-1598387993441-a360f544a835?w=400&h=300&fit=crop" },
+      { id: "masoor", name: "Masoor Dal", description: "Quick-cooking & vibrant", image: "https://images.unsplash.com/photo-1598344084757-b83f2081da8b?w=400&h=300&fit=crop" },
+      { id: "urad", name: "Urad Dal", description: "Creamy & comforting", image: "https://images.unsplash.com/photo-1598344084757-b83f2081da8b?w=400&h=300&fit=crop" },
+      { id: "gift-hampers", name: "Gift Hampers", description: "Perfect for gifting", image: "https://images.unsplash.com/photo-1598344084757-b83f2081da8b?w=400&h=300&fit=crop" },
+    ],
+    ctaTitle: "Our sourcing story",
+    ctaDescription: "We partner directly with farmers in the Terai region to bring you unpolished, stone-ground dals that retain all their natural nutrition and flavour.",
+    ctaLinkText: "Learn more",
+    ctaLink: "/about/sourcing",
     isActive: true,
     sortOrder: 1,
     createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date().toISOString(),
   },
+];
+
+const sampleReviews: Review[] = [
+  { id: 1, productId: 1, name: "Priya S.", initials: "PS", rating: 5, date: "June 2026", comment: "Absolutely exquisite. The aroma is unlike anything I've tasted before. Worth every rupee.", status: "Approved" },
+  { id: 2, productId: 1, name: "David K.", initials: "DK", rating: 5, date: "May 2026", comment: "I order this every month. My morning ritual is incomplete without it. Top quality packaging too.", status: "Approved" },
+  { id: 3, productId: 1, name: "Meera R.", initials: "MR", rating: 4, date: "April 2026", comment: "Lovely tea, smooth and fragrant. Delivery was fast. Will definitely order again!", status: "Pending" },
 ];
 
 const sampleProducts: Product[] = [
@@ -393,38 +440,32 @@ const sampleProducts: Product[] = [
   ], batches: [
     { id: 1, batchNumber: "BATCH-2024-001", quantity: 100, receivedDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Assam Tea Estates", costPrice: 120 },
     { id: 2, batchNumber: "BATCH-2024-002", quantity: 45, receivedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Darjeeling Farms", costPrice: 115 },
-  ] },
+  ], reviews: sampleReviews.filter(r => r.productId === 1), isBestseller: true },
   { id: 2, productLineId: "pl-1", name: "Classic Black Tea", category: "Black Tea", price: 229, stock: 234, status: "In Stock", description: "Traditional black tea blend", imageUrl: "https://images.unsplash.com/photo-1564890369478-c6b8b91994ed?w=400&h=300&fit=crop", reviewsEnabled: true, sku: "HMT-BLK-001", reorderPoint: 60, hasVariants: false, productVariants: [], variantOptions: [], batches: [
     { id: 3, batchNumber: "BATCH-2024-003", quantity: 150, receivedDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 730 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Nilgiri Plantations", costPrice: 100 },
     { id: 4, batchNumber: "BATCH-2024-004", quantity: 84, receivedDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 730 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Nilgiri Plantations", costPrice: 100 },
-  ] },
+  ], reviews: [], isBestseller: false },
   { id: 3, productLineId: "pl-1", name: "Herbal Collection", category: "Herbal", price: 199, stock: 25, status: "Low Stock", description: "Natural herbal tea mix", imageUrl: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=300&fit=crop", reviewsEnabled: true, sku: "HMT-HRB-001", reorderPoint: 40, hasVariants: false, productVariants: [], variantOptions: [], batches: [
     { id: 5, batchNumber: "BATCH-2024-005", quantity: 25, receivedDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Ayurveda Farms", costPrice: 85 },
-  ] },
+  ], reviews: [], isBestseller: false },
   { id: 4, productLineId: "pl-1", name: "Tea Ceremony Set", category: "Accessories", price: 899, stock: 12, status: "In Stock", description: "Complete tea ceremony kit", imageUrl: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=400&h=300&fit=crop", reviewsEnabled: false, sku: "HMT-ACC-001", reorderPoint: 10, hasVariants: false, productVariants: [], variantOptions: [], batches: [
     { id: 6, batchNumber: "BATCH-2024-006", quantity: 12, receivedDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Ceramic Crafts", costPrice: 450 },
-  ] },
+  ], reviews: [], isBestseller: false },
   { id: 5, productLineId: "pl-1", name: "Masala Chai Mix", category: "Spiced", price: 299, stock: 56, status: "In Stock", description: "Authentic masala chai spice blend", imageUrl: "https://images.unsplash.com/photo-1586374820345-f6339ae67f71?w=400&h=300&fit=crop", reviewsEnabled: true, sku: "HMT-MSL-001", reorderPoint: 35, hasVariants: false, productVariants: [], variantOptions: [], batches: [
     { id: 7, batchNumber: "BATCH-2024-007", quantity: 56, receivedDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Spice Traders Co", costPrice: 140 },
-  ] },
+  ], reviews: [], isBestseller: true },
   { id: 6, productLineId: "pl-2", name: "Premium Toor Dal", category: "Toor", price: 189, stock: 200, status: "In Stock", description: "Unpolished, stone-ground toor dal from Terai plains", imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop", reviewsEnabled: true, sku: "GG-DAL-001", reorderPoint: 40, hasVariants: false, productVariants: [], variantOptions: [], batches: [
     { id: 8, batchNumber: "BATCH-2024-008", quantity: 200, receivedDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Terai Farmer Coop", costPrice: 90 },
-  ] },
+  ], reviews: [], isBestseller: true },
   { id: 7, productLineId: "pl-2", name: "Organic Moong Dal", category: "Moong", price: 219, stock: 150, status: "In Stock", description: "Green moong dal, hand-sorted and unpolished", imageUrl: "https://images.unsplash.com/photo-1598387993441-a360f544a835?w=400&h=300&fit=crop", reviewsEnabled: true, sku: "GG-DAL-002", reorderPoint: 35, hasVariants: false, productVariants: [], variantOptions: [], batches: [
     { id: 9, batchNumber: "BATCH-2024-009", quantity: 150, receivedDate: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(), expiryDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(), supplier: "Organic Pulse Farms", costPrice: 105 },
-  ] },
+  ], reviews: [], isBestseller: false },
 ];
 
 const sampleCustomers: Customer[] = [
   { id: 1, name: "Sarah Johnson", email: "sarah@example.com", phone: "+91 9876543210", address: "123 Tea Street, Mumbai", ordersCount: 14, totalSpent: 5231, loyaltyPoints: 523, tier: "Silver", createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() },
   { id: 2, name: "Michael Chen", email: "michael@example.com", phone: "+91 9876543211", address: "456 Herbal Lane, Delhi", ordersCount: 9, totalSpent: 3499, loyaltyPoints: 350, tier: "Bronze", createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString() },
   { id: 3, name: "Emma Williams", email: "emma@example.com", phone: "+91 9876543212", address: "789 Green Tea Road, Bangalore", ordersCount: 23, totalSpent: 8921, loyaltyPoints: 892, tier: "Gold", createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString() },
-];
-
-const sampleReviews: Review[] = [
-  { id: 1, productId: 1, name: "Priya S.", initials: "PS", rating: 5, date: "June 2026", comment: "Absolutely exquisite. The aroma is unlike anything I've tasted before. Worth every rupee.", status: "Approved" },
-  { id: 2, productId: 1, name: "David K.", initials: "DK", rating: 5, date: "May 2026", comment: "I order this every month. My morning ritual is incomplete without it. Top quality packaging too.", status: "Approved" },
-  { id: 3, productId: 1, name: "Meera R.", initials: "MR", rating: 4, date: "April 2026", comment: "Lovely tea, smooth and fragrant. Delivery was fast. Will definitely order again!", status: "Pending" },
 ];
 
 const sampleBlogPosts: BlogPost[] = [
@@ -714,6 +755,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             batches: product.batches || [],
             productVariants: product.productVariants || [],
             variantOptions: product.variantOptions || [],
+            reviews: product.reviews || [],
           })));
         } catch (e) {}
       }
@@ -1139,13 +1181,20 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const addProduct = (product: Omit<Product, "id">) => {
+    const foundProductLine = productLines.find(pl => pl.id === product.productLineId);
     const newProduct: Product = {
       ...product,
       id: Date.now(),
+      productLine: (product.productLine || foundProductLine?.name || storeProductLines[0]?.name) as string,
       hasVariants: product.hasVariants || false,
       productVariants: product.productVariants || [],
       variantOptions: product.variantOptions || [],
       batches: product.batches || [],
+      reviews: product.reviews || [],
+      reviewsEnabled: (product as any).reviewsEnabled !== false,
+      isBestseller: (product as any).isBestseller || false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     setProducts((prev) => [...prev, newProduct]);
     toast.success("Product added successfully!");
@@ -1153,9 +1202,19 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const updateProduct = (id: number, updates: Partial<Product>) => {
     setProducts((prev) =>
-      prev.map((product) =>
-        product.id === id ? { ...product, ...updates } : product
-      )
+      prev.map((product) => {
+        if (product.id === id) {
+          const newProductLineId = updates.productLineId ?? product.productLineId;
+          const foundProductLine = productLines.find(pl => pl.id === newProductLineId);
+          return { 
+            ...product, 
+            ...updates, 
+            updatedAt: new Date().toISOString(),
+            productLine: (updates.productLine || foundProductLine?.name || product.productLine) as string
+          };
+        }
+        return product;
+      })
     );
     toast.success("Product updated!");
   };

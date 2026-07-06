@@ -44,6 +44,19 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { items, ...orderData } = body
     
+    // Validate all productIds exist in the database
+    const productIds = items.map((item: any) => item.productId)
+    const existingProducts = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true }
+    })
+    const existingProductIds = new Set(existingProducts.map(p => p.id))
+    
+    const invalidProductIds = productIds.filter(id => !existingProductIds.has(id))
+    if (invalidProductIds.length > 0) {
+      return createErrorResponse(`Invalid product IDs: ${invalidProductIds.join(', ')}`, 400)
+    }
+    
     let customerId = orderData.customerId
     if (!customerId && currentUser && !('username' in currentUser)) {
       customerId = currentUser.id

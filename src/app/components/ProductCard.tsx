@@ -12,6 +12,12 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
 
+  // Calculate average rating from reviews
+  const averageRating = product.reviews && product.reviews.length > 0
+    ? (product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length).toFixed(1)
+    : "4.8";
+  const reviewCount = product.reviews?.length || 0;
+
   return (
     <div className="bg-white rounded-2xl overflow-hidden group border border-[rgba(28,25,23,0.06)] hover:shadow-xl hover:border-[#2d5a3d]/20 transition-all duration-300">
       {/* Image */}
@@ -20,18 +26,13 @@ export default function ProductCard({ product }: ProductCardProps) {
         className="relative overflow-hidden bg-[#f0ede8] block aspect-[4/5]"
       >
         <img
-          src={product.image}
+          src={product.imageUrl}
           alt={product.name}
           className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
         />
         {product.isBestseller && (
           <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-medium bg-[#2d5a3d] text-white">
             Bestseller
-          </span>
-        )}
-        {product.isNew && (
-          <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-medium bg-[#c8a96e] text-[#1c1917]">
-            New
           </span>
         )}
       </Link>
@@ -41,11 +42,11 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="flex items-center gap-1 mb-2">
           <Star className="h-3.5 w-3.5 fill-[#c8a96e] text-[#c8a96e]" />
           <span className="text-sm font-medium text-[#1c1917]">
-            {product.rating}
+            {averageRating}
           </span>
-          {product.reviewCount && (
+          {reviewCount > 0 && (
             <span className="text-xs text-[#78746e]">
-              ({product.reviewCount})
+              ({reviewCount})
             </span>
           )}
         </div>
@@ -59,7 +60,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </h3>
         </Link>
         <p className="text-sm text-[#78746e] mb-3">
-          {product.type} · {product.origin}
+          {product.category}
         </p>
 
         <div className="flex items-center justify-between">
@@ -67,11 +68,6 @@ export default function ProductCard({ product }: ProductCardProps) {
             <span className="text-lg font-bold text-[#1c1917]">
               Rs.{product.price.toLocaleString()}
             </span>
-            {product.weight && (
-              <span className="text-xs text-[#78746e] ml-1">
-                / {product.weight}
-              </span>
-            )}
           </div>
         </div>
 
@@ -79,11 +75,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           onClick={(e) => {
             e.preventDefault();
             addToCart({
-              id: product.id,
+              id: product.id.toString(),
+              productId: product.id,
               name: product.name,
               price: product.price,
-              image: product.image,
-              weight: product.weight || "100g",
+              image: product.imageUrl,
             });
           }}
           className="cursor-pointer w-full mt-3 flex items-center justify-center gap-2 py-2.5 bg-[#2d5a3d] text-white text-sm font-medium rounded-lg hover:bg-[#234832] transition-colors"

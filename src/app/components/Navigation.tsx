@@ -30,6 +30,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useStore } from "@/context/StoreContext";
 import { BRAND } from "@/config/brand";
 
 /* ─────────────────────────────────────────────────────────
@@ -180,6 +181,7 @@ export default function Navigation() {
   const { cartCount } = useCart();
   const { isLoggedIn, logout, userType } = useAuth();
   const { wishlist } = useWishlist();
+  const { productLines, products } = useStore();
 
   /* Auto-focus input when modal opens */
   useEffect(() => {
@@ -238,6 +240,21 @@ export default function Navigation() {
     {
       label: "Products",
       href: "/products",
+      children: [
+        // Product lines
+        ...productLines.filter(pl => pl.isActive).map(pl => ({
+          label: pl.name,
+          sub: pl.description.slice(0, 50) + (pl.description.length > 50 ? "..." : ""),
+          href: `/${pl.slug}`,
+        })),
+        // Divider (represented by null for now, but we'll handle it in rendering)
+        // All products
+        {
+          label: "All Products",
+          sub: "Browse our complete product catalog",
+          href: "/products",
+        },
+      ],
     },
     {
       label: t("nav.collections"),

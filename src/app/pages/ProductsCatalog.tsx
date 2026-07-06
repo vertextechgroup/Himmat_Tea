@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import Navigation from "@/app/components/Navigation";
 import Footer from "@/app/components/Footer";
@@ -10,6 +10,8 @@ import { useWishlist } from "@/context/WishlistContext";
 import { Search, ShoppingBag, Star, ArrowRight, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { BRAND } from "@/config/brand";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api-client";
 
 interface Product {
   id: number;
@@ -31,11 +33,12 @@ interface Product {
   reviews: any[];
   productLine?: string;
   productLineId?: string;
+  isBestseller?: boolean;
 }
 
-const filterTabs = [
+const filterTabs = (productLines: any[]) => [
   { key: "all", label: "All Products" },
-  ...BRAND.productLines.map(pl => ({ key: pl.slug, label: pl.name })),
+  ...productLines.filter(pl => pl.isActive).map(pl => ({ key: pl.slug, label: pl.name })),
 ];
 
 const tagStyles: Record<string, string> = {
@@ -74,24 +77,22 @@ export default function ProductsCatalog() {
   const [sort, setSort] = useState("featured");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch("/api/products");
-        const data = await response.json();
-        setAllProducts(data); // The API returns an array directly, not wrapped in { data: ... }
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data: allProducts = [], isLoading: productsLoading, error: productsError } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const response = await api.get<any>('/products');
+      return response.data || response;
+    }
+  });
 
-    fetchProducts();
-  }, []);
+  const { data: productLines = [], isLoading: productLinesLoading } = useQuery({
+    queryKey: ['product-lines'],
+    queryFn: async () => {
+      const response = await api.get<any>('/product-lines');
+      return response.data || response;
+    }
+  });
 
   function handleWishlistClick(product: Product, e: React.MouseEvent) {
     e.preventDefault();
@@ -114,9 +115,10 @@ export default function ProductsCatalog() {
 
   const filtered = useMemo(() => {
     let list = allProducts.filter((p) => {
+      const productLineForProduct = productLines.find(pl => pl.id === p.productLineId);
       const matchFilter = filter === "all" || 
-        p.productLineId === filter || 
-        p.productLine === BRAND.productLines.find(pl => pl.slug === filter)?.name;
+        productLineForProduct?.slug === filter || 
+        p.productLine === productLines.find(pl => pl.slug === filter)?.name;
       const matchSearch =
         search.trim() === "" ||
         p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -137,7 +139,7 @@ export default function ProductsCatalog() {
     }
 
     return list;
-  }, [filter, sort, search, allProducts]);
+  }, [filter, sort, search, allProducts, productLines]);
 
   const paginated = filtered.slice(0, page * ITEMS_PER_PAGE);
   const hasMore = filtered.length > paginated.length;
@@ -145,6 +147,7 @@ export default function ProductsCatalog() {
   function handleAddToCart(product: Product) {
     addToCart({
       id: product.id.toString(),
+      productId: product.id,
       name: product.name,
       price: product.price,
       image: product.imageUrl,
@@ -154,26 +157,9 @@ export default function ProductsCatalog() {
   }
 
   const getAverageRating = (product: Product) => {
-    return product.reviews.length > 0 ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length : 4.5;
+    const reviews = product.reviews || [];
+    return reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 4.5;
   };
-
-  if (loading) {
-    return (
-      <div
-        className="min-h-screen bg-[#f9f7f4]"
-        style={{ fontFamily: "'DM Sans', sans-serif" }}
-      >
-        <Navigation />
-        <main className="pt-[180px] pb-24">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center py-20">
-            <p className="text-5xl mb-5">⏳</p>
-            <h2 className="text-xl font-semibold text-[#1c1917]">Loading products...</h2>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
 
   return (
     <div
@@ -215,8 +201,8 @@ export default function ProductsCatalog() {
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-10">
             {/* Type filter tabs */}
             <div className="flex flex-wrap gap-2">
-              {filterTabs.map((tab) => {
-                const pl = BRAND.productLines.find(p => p.slug === tab.key);
+              {filterTabs(productLines).map((tab) => {
+                const pl = productLines.find(p => p.slug === tab.key);
                 return (
                   <button
                     key={tab.key}
@@ -229,7 +215,7 @@ export default function ProductsCatalog() {
                         ? "text-white shadow-sm"
                         : "bg-white text-[#1c1917] border border-[rgba(28,25,23,0.08)] hover:bg-[#f0ede8]"
                     }`}
-                    style={filter === tab.key && pl ? { backgroundColor: pl.color } : undefined}
+                    style={filter === tab.key && pl ? { backgroundColor: (pl as any).color || "#2d5a3d" } : undefined}
                   >
                     {tab.label}
                   </button>
@@ -325,9 +311,16 @@ export default function ProductsCatalog() {
 
                     {/* Info */}
                     <div className="p-5">
-                      <p className="text-xs text-[#c8a96e] font-semibold uppercase tracking-wide mb-1">
-                        {product.category}
-                      </p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-xs text-[#c8a96e] font-semibold uppercase tracking-wide">
+                          {product.category}
+                        </p>
+                        {product.isBestseller && (
+                          <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-[#2d5a3d] text-white">
+                            Bestseller
+                          </span>
+                        )}
+                      </div>
                       <Link href={`/products/${product.id}`}>
                         <h3
                           className="text-[15px] font-semibold text-[#1c1917] mb-2.5 group-hover:text-[#2d5a3d] transition-colors leading-snug"
@@ -340,7 +333,7 @@ export default function ProductsCatalog() {
                       <div className="flex items-center gap-2 mb-3">
                         <StarRating rating={rating} />
                         <span className="text-xs text-[#78746e]">
-                          {rating.toFixed(1)} ({product.reviews.length})
+                          {rating.toFixed(1)} ({(product.reviews || []).length})
                         </span>
                       </div>
 
