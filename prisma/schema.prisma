@@ -7,22 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model ProductLine {
-  id          String    @id @default(cuid())
-  slug        String    @unique
-  name        String
-  description String
-  heroImage   String?
-  isActive    Boolean   @default(true)
-  sortOrder   Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  products    Product[]
-}
-
 model Product {
-  productLineId String
-  productLine   ProductLine @relation(fields: [productLineId], references: [id])
   id                    Int                    @id @default(autoincrement())
   name                  String
   category              String
@@ -35,7 +20,6 @@ model Product {
   reorderPoint          Int?                   @default(50)
   hasVariants           Boolean                @default(false)
   variantOptions        String?
-  isBestseller          Boolean                @default(false)
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   batches               Batch[]
@@ -80,7 +64,6 @@ model Customer {
   email         String   @unique
   phone         String
   address       String
-  passwordHash  String   @default("")
   ordersCount   Int      @default(0)
   totalSpent    Float    @default(0)
   loyaltyPoints Int      @default(0)
@@ -308,8 +291,8 @@ model Settings {
   id                   String   @id @default(cuid())
   taxRate              Float    @default(18)
   currency             String   @default("₹")
-  storeName            String   @default("Godgifted")
-  storeEmail           String   @default("support@godgifted.com")
+  storeName            String   @default("Himmat Tea")
+  storeEmail           String   @default("support@himmattea.com")
   storePhone           String   @default("+91 9876543210")
   notificationsEnabled Boolean  @default(true)
   lowStockThreshold    Int      @default(30)

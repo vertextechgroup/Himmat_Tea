@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -15,7 +14,6 @@ async function main() {
   await prisma.collectionItem.deleteMany()
   await prisma.collection.deleteMany()
   await prisma.product.deleteMany()
-  await prisma.productLine.deleteMany()
   await prisma.blogPost.deleteMany()
   await prisma.fAQ.deleteMany()
   await prisma.brewingGuide.deleteMany()
@@ -28,33 +26,10 @@ async function main() {
   await prisma.loyaltyProgram.deleteMany()
   await prisma.notification.deleteMany()
 
-  // Create product lines
-  const himmatTeaLine = await prisma.productLine.create({
-    data: {
-      slug: "himmat-tea",
-      name: "Himmat Tea",
-      description: "Hand-sourced tea from the Himalayan foothills and beyond.",
-      isActive: true,
-      sortOrder: 0
-    }
-  })
-
-  const godgiftedDalLine = await prisma.productLine.create({
-    data: {
-      slug: "godgifted-dal",
-      name: "Godgifted Dal",
-      description: "Stone-ground, unpolished pulses sourced directly from farmers.",
-      isActive: true,
-      sortOrder: 1
-    }
-  })
-
   // Create products
   const products = await Promise.all([
-    // Himmat Tea products
     prisma.product.create({
       data: {
-        productLineId: himmatTeaLine.id,
         name: "Dragon Well Longjing",
         category: "green",
         price: 1850,
@@ -69,7 +44,6 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        productLineId: himmatTeaLine.id,
         name: "First Flush Darjeeling",
         category: "black",
         price: 2200,
@@ -84,7 +58,6 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        productLineId: himmatTeaLine.id,
         name: "Himalayan Herbal Blend",
         category: "herbal",
         price: 1400,
@@ -99,7 +72,6 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        productLineId: himmatTeaLine.id,
         name: "Wuyi Rock Oolong",
         category: "oolong",
         price: 2600,
@@ -114,7 +86,6 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        productLineId: himmatTeaLine.id,
         name: "Silver Needle White Tea",
         category: "white",
         price: 3200,
@@ -129,7 +100,6 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        productLineId: himmatTeaLine.id,
         name: "Nepal Green Ilam",
         category: "green",
         price: 1200,
@@ -144,7 +114,6 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        productLineId: himmatTeaLine.id,
         name: "Assam CTC Breakfast",
         category: "black",
         price: 950,
@@ -159,7 +128,6 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        productLineId: himmatTeaLine.id,
         name: "Chamomile Calm",
         category: "herbal",
         price: 1100,
@@ -169,52 +137,6 @@ async function main() {
         imageUrl: "https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?w=800&h=800&fit=crop&q=80",
         sku: "HERBAL-002",
         reorderPoint: 25,
-        hasVariants: false
-      }
-    }),
-    // Godgifted Dal products
-    prisma.product.create({
-      data: {
-        productLineId: godgiftedDalLine.id,
-        name: "Premium Toor Dal",
-        category: "toor",
-        price: 189,
-        stock: 200,
-        status: "In Stock",
-        description: "Unpolished, stone-ground toor dal from Terai plains, rich in protein and fiber.",
-        imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=800&fit=crop&q=80",
-        sku: "DAL-001",
-        reorderPoint: 40,
-        hasVariants: false
-      }
-    }),
-    prisma.product.create({
-      data: {
-        productLineId: godgiftedDalLine.id,
-        name: "Organic Moong Dal",
-        category: "moong",
-        price: 219,
-        stock: 150,
-        status: "In Stock",
-        description: "Green moong dal, hand-sorted and unpolished, perfect for dal and sprouts.",
-        imageUrl: "https://images.unsplash.com/photo-1598344084757-b83f2081da8b?w=800&h=800&fit=crop&q=80",
-        sku: "DAL-002",
-        reorderPoint: 35,
-        hasVariants: false
-      }
-    }),
-    prisma.product.create({
-      data: {
-        productLineId: godgiftedDalLine.id,
-        name: "Kala Chana",
-        category: "chana",
-        price: 159,
-        stock: 180,
-        status: "In Stock",
-        description: "Black chickpeas, sourced directly from farmers in Haryana, perfect for curries.",
-        imageUrl: "https://images.unsplash.com/photo-1598387993441-a360f544a835?w=800&h=800&fit=crop&q=80",
-        sku: "DAL-003",
-        reorderPoint: 30,
         hasVariants: false
       }
     })
@@ -268,34 +190,11 @@ async function main() {
     data: {
       taxRate: 13,
       currency: "Rs.",
-      storeName: "Godgifted",
-      storeEmail: "support@godgifted.com",
+      storeName: "Himmat Tea",
+      storeEmail: "support@himmattea.com",
       storePhone: "+977 9876543210",
       notificationsEnabled: true,
       lowStockThreshold: 20
-    }
-  })
-
-  // Create demo customers (password = customer name for demo mode)
-  const customers = [
-    { name: "Priya Sharma", email: "priya@example.com", phone: "+977 9812345678", address: "Kathmandu, Nepal" },
-    { name: "Ravi Thapa", email: "ravi@example.com", phone: "+977 9823456789", address: "Pokhara, Nepal" },
-    { name: "Anita Gurung", email: "anita@example.com", phone: "+977 9834567890", address: "Lalitpur, Nepal" }
-  ]
-
-  for (const c of customers) {
-    await prisma.customer.create({ data: c })
-  }
-
-  // Create demo admin user (password: admin123)
-  const adminHash = await bcrypt.hash("admin123", 10)
-  await prisma.adminUser.create({
-    data: {
-      username: "admin",
-      email: "admin@godgifted.com",
-      passwordHash: adminHash,
-      role: "admin",
-      isActive: true
     }
   })
 

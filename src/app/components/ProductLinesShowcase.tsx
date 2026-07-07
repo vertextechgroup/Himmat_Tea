@@ -2,9 +2,12 @@
 
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { BRAND } from "@/config/brand";
+import { useStore } from "@/context/StoreContext";
 
 export default function ProductLinesShowcase() {
+  const { productLines } = useStore();
+  const activeProductLines = productLines.filter(pl => pl.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
+
   return (
     <section className="py-20 bg-[#faf8f5]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -49,19 +52,20 @@ export default function ProductLinesShowcase() {
 
         {/* Product lines grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {BRAND.productLines.map((line) => (
+          {activeProductLines.map((line) => (
             <Link
-              key={line.slug}
+              key={line.id}
               href={`/${line.slug}`}
               className="group relative rounded-2xl overflow-hidden border border-[rgba(26,25,23,0.08)] hover:shadow-xl transition-all duration-300"
             >
               <div className="aspect-[4/3] relative overflow-hidden">
-                {/* Placeholder image (using Unsplash for now) */}
                 <img
                   src={
-                    line.slug === "himmat-tea"
-                      ? "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=800&h=600&fit=crop"
-                      : "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop"
+                    line.heroImage || (
+                      line.slug === "himmat-tea"
+                        ? "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=800&h=600&fit=crop"
+                        : "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop"
+                    )
                   }
                   alt={line.name}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
