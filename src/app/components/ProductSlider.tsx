@@ -1,12 +1,18 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import Link from 'next/link';
-import { useStore } from '@/context/StoreContext';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from './ui/carousel';
 
-export default function ProductSlider() {
-  const { products } = useStore();
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  imageUrl: string;
+  [key: string]: any;
+}
+
+export default function ProductSlider({ products }: { products: Product[] }) {
 
   return (
     <section className="py-12 bg-[#faf8f5]" style={{ fontFamily: "'DM Sans', sans-serif" }}>

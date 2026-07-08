@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, { params }: Params) {
   try {
     const { id } = await params
     const productLine = await prisma.productLine.findUnique({
-      where: { id },
+      where: { id: parseInt(id) },
       include: { products: true },
     })
     if (!productLine) {
@@ -28,7 +28,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
     const { id } = await params
     const body = await request.json()
     const productLine = await prisma.productLine.update({
-      where: { id },
+      where: { id: parseInt(id) },
       data: body,
       include: { products: true },
     })
@@ -42,7 +42,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   try {
     const { id } = await params
     await prisma.productLine.delete({
-      where: { id },
+      where: { id: parseInt(id) },
     })
     return createResponse({ message: 'Product line deleted successfully' })
   } catch (error) {

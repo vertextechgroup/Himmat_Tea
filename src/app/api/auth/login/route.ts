@@ -8,8 +8,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { username, password } = body
     
-    const adminUser = await prisma.adminUser.findUnique({
-      where: { username }
+    // Find admin by either username or email
+    const adminUser = await prisma.adminUser.findFirst({
+      where: {
+        OR: [
+          { username },
+          { email: username }
+        ]
+      }
     })
     
     if (!adminUser || !adminUser.isActive) {

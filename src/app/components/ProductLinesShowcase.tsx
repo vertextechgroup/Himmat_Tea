@@ -2,11 +2,18 @@
 
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useStore } from "@/context/StoreContext";
 
-export default function ProductLinesShowcase() {
-  const { productLines } = useStore();
-  const activeProductLines = productLines.filter(pl => pl.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
+interface ProductLine {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  heroImage?: string;
+  [key: string]: any;
+}
+
+export default function ProductLinesShowcase({ productLines }: { productLines: ProductLine[] }) {
+  const activeProductLines = productLines;
 
   return (
     <section className="py-20 bg-[#faf8f5]" style={{ fontFamily: "'DM Sans', sans-serif" }}>

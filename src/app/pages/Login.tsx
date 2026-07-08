@@ -131,13 +131,13 @@ export default function Login() {
                 htmlFor="username" 
                 className="text-[#1c1917] text-sm font-medium"
               >
-                Username
+                Username or Email
               </Label>
               <Input
                 id="username"
                 name="username"
                 type="text"
-                placeholder="Enter your username"
+                placeholder="Enter your username or email"
                 value={username}
                 onChange={(e) => {
                   setUsername(e.target.value);

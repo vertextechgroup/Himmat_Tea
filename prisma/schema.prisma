@@ -7,8 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model ProductLine {
+  id           Int       @id @default(autoincrement())
+  slug         String    @unique
+  name         String
+  description  String
+  heroHeadline String?
+  heroImage    String?
+  color        String?
+  categories   String?
+  ctaTitle     String?
+  ctaDescription String?
+  ctaLinkText  String?
+  ctaLink      String?
+  isActive     Boolean   @default(true)
+  sortOrder    Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  products     Product[]
+}
+
 model Product {
   id                    Int                    @id @default(autoincrement())
+  productLineId         Int?
+  productLine           ProductLine?           @relation(fields: [productLineId], references: [id])
   name                  String
   category              String
   price                 Float
@@ -20,6 +42,7 @@ model Product {
   reorderPoint          Int?                   @default(50)
   hasVariants           Boolean                @default(false)
   variantOptions        String?
+  isBestseller          Boolean                @default(false)
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   batches               Batch[]
